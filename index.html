@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POS-PRO</title>
+    <title>POS-PRO | Dr. Wells Pharmacies</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     
@@ -36,6 +37,15 @@
                 display: none !important;
             }
         }
+        .filter-input {
+            width: 100%;
+            padding: 2px 5px;
+            font-size: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            margin-top: 4px;
+            font-weight: normal;
+        }
     </style>
 </head>
 <body class="text-gray-800 antialiased">
@@ -47,7 +57,7 @@
                     <i class="fa-solid mt-0.5 fa-prescription-bottle-medical text-3xl"></i>
                 </div>
                 <h2 class="text-2xl font-black text-gray-900"> POS - PRO </h2>
-                <p class="text-sm text-gray-500 mt-1">المنظومة السحابية الموحدة لإدارة المبيعات والأصناف</p>
+                <p class="text-sm text-gray-500 mt-1">الفريق الطبي لصيدليات Dr. Wells</p>
             </div>
             <form id="login-form" class="space-y-5">
                 <div>
@@ -73,12 +83,46 @@
         </div>
     </div>
 
+    <div id="search-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-6 m-4 flex flex-col h-[80vh]">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fa-solid fa-search text-blue-600"></i> بحث متقدم عن الأصناف (F1)
+                </h3>
+                <button onclick="closeSearchModal()" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="mb-4">
+                <input type="text" id="modal-search-input" oninput="filterModalItems()" class="w-full px-4 py-3 border-2 border-blue-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-bold" placeholder="ابحث بالاسم أو الكود (بحث تقريبي)...">
+            </div>
+            <div class="flex-1 overflow-y-auto border rounded-xl mb-4">
+                <table class="w-full text-right border-collapse">
+                    <thead class="bg-gray-100 sticky top-0">
+                        <tr class="text-xs font-bold text-gray-600 border-b">
+                            <th class="p-3 w-10 text-center"><input type="checkbox" id="select-all-modal" onchange="toggleAllModalCheckboxes()"></th>
+                            <th class="p-3">كود الصنف</th>
+                            <th class="p-3">اسم الصنف</th>
+                            <th class="p-3">السعر</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modal-items-tbody" class="text-sm divide-y">
+                        </tbody>
+                </table>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button onclick="closeSearchModal()" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition">إلغاء</button>
+                <button onclick="addSelectedItemsFromModal()" class="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-md flex items-center gap-2">
+                    <i class="fa-solid fa-check-double"></i> إضافة الأصناف المحددة
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="main-dashboard" class="hidden min-h-screen flex flex-col">
         <header class="bg-white shadow-sm border-b border-gray-200 no-print">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                 <div class="flex items-center space-x-4 space-x-reverse">
                     <span class="text-xl font-black text-blue-600 flex items-center gap-2">
-                        <i class="fa-solid fa-square-poll-horizontal"></i> POS - PRO 
+                        <i class="fa-solid fa-square-poll-horizontal"></i> POS - PRO | Dr. Wells
                     </span>
                     <span id="user-badge" class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold"></span>
                 </div>
@@ -92,14 +136,17 @@
 
         <nav class="bg-white border-b border-gray-200 no-print shadow-inner">
             <div class="max-w-7xl mx-auto px-4 overflow-x-auto flex space-x-2 space-x-reverse py-3">
-                <button onclick="switchTab('items-tab')" id="btn-items-tab" class="tab-btn px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 bg-blue-600 text-white">
+                <button onclick="switchTab('invoice-tab')" id="btn-invoice-tab" class="tab-btn px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 bg-blue-600 text-white">
+                    <i class="fa-solid fa-file-invoice-dollar"></i> فاتورة مبيعات
+                </button>
+                <button onclick="switchTab('items-tab')" id="btn-items-tab" class="tab-btn px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 bg-gray-100 text-gray-600 hover:bg-gray-200">
                     <i class="fa-solid fa-box"></i> الأصناف
                 </button>
                 <button onclick="switchTab('branches-tab')" id="btn-branches-tab" class="tab-btn px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 bg-gray-100 text-gray-600 hover:bg-gray-200">
                     <i class="fa-solid fa-store"></i> الفروع
                 </button>
-                <button onclick="switchTab('invoice-tab')" id="btn-invoice-tab" class="tab-btn px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 bg-gray-100 text-gray-600 hover:bg-gray-200">
-                    <i class="fa-solid fa-file-invoice-dollar"></i> فاتورة مبيعات
+                <button onclick="switchTab('settings-tab')" id="btn-settings-tab" class="tab-btn px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 bg-gray-100 text-gray-600 hover:bg-gray-200">
+                    <i class="fa-solid fa-cogs"></i> إعدادات فاتورة البيع
                 </button>
                 <button onclick="switchTab('suspended-tab')" id="btn-suspended-tab" class="tab-btn px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 bg-gray-100 text-gray-600 hover:bg-gray-200 relative">
                     <i class="fa-solid fa-clock"></i> الفواتير المعلقة
@@ -113,7 +160,7 @@
 
         <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 no-print">
             
-            <section id="items-tab" class="tab-content space-y-6">
+            <section id="items-tab" class="tab-content space-y-6 hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="bg-white rounded-2xl shadow-sm border p-6 h-fit">
                         <h3 id="item-form-title" class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -144,7 +191,7 @@
                             <h3 class="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
                                 <i class="fa-solid fa-file-excel text-green-600"></i> استيراد وتحديث من شيت Excel
                             </h3>
-                            <p class="text-xs text-gray-500 mb-4">ارفع ملف Excel يحتوي على الأعمدة التالية بالترتيب أو العناوين: (الكود، الاسم، السعر). سيقوم النظام تلقائياً بتحديث البيانات إذا كان الكود مسجلاً مسبقاً، أو إضافته كصنف جديد تماماً.</p>
+                            <p class="text-xs text-gray-500 mb-4">ارفع ملف Excel يحتوي على الأعمدة التالية بالترتيب أو العناوين: (الكود، الاسم، السعر).</p>
                             <div class="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center hover:bg-gray-50 transition relative">
                                 <input type="file" id="excel-file" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                                 <i class="fa-solid fa-cloud-arrow-up text-4xl text-gray-400 mb-2"></i>
@@ -182,8 +229,8 @@
                     <div class="p-3 border-t bg-white flex items-center justify-between">
                         <span id="items-page-info" class="text-xs font-bold text-gray-500">صفحة 1 من 1</span>
                         <div class="flex gap-2">
-                            <button type="button" onclick="window.prevItemPage()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-1.5 rounded-lg text-xs font-bold transition"><i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i> السابق</button>
-                            <button type="button" onclick="window.nextItemPage()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-sm">التالي <i class="fa-solid fa-chevron-left mr-1 text-[10px]"></i></button>
+                            <button type="button" onclick="window.prevItemPage()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-1.5 rounded-lg text-xs font-bold transition">السابق</button>
+                            <button type="button" onclick="window.nextItemPage()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-sm">التالي</button>
                         </div>
                     </div>
                 </div>
@@ -211,12 +258,12 @@
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">نوع الكيان</label>
                                 <select id="branch-type" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option value="BRANCH">فرع صيدلية (  واستلام)</option>
+                                    <option value="BRANCH">فرع صيدلية (بيع واستلام)</option>
                                     <option value="CUSTOMER_SERVICE">خدمة عملاء (إنشاء وتوجيه)</option>
                                 </select>
                             </div>
                             <div class="flex gap-2 pt-2">
-                                <button type="submit" class="flex-1 bg-indigo-600 text-white font-semibold py-2 rounded-xl text-sm hover:bg-indigo-700">إضافة وحفظ</button>
+                                <button type="submit" class="flex-1 bg-indigo-600 text-white font-semibold py-2 rounded-xl text-sm hover:bg-indigo-700">حفظ</button>
                                 <button type="button" onclick="resetBranchForm()" class="bg-gray-100 text-gray-600 py-2 px-3 rounded-xl text-sm hover:bg-gray-200">إلغاء</button>
                             </div>
                         </form>
@@ -244,52 +291,150 @@
                 </div>
             </section>
 
+            <section id="settings-tab" class="tab-content space-y-6 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-2xl shadow-sm border p-6 h-fit">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2">
+                            <i class="fa-solid fa-tags text-blue-500"></i> إعدادات أنواع الأوردرات
+                        </h3>
+                        <form id="order-type-form" class="space-y-4 mb-6">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 mb-1">كود النوع</label>
+                                    <input type="text" id="order-type-code" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 mb-1">اسم النوع</label>
+                                    <input type="text" id="order-type-name" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="submit" class="flex-1 bg-blue-600 text-white font-semibold py-2 rounded-xl text-sm hover:bg-blue-700">حفظ</button>
+                                <button type="button" onclick="resetSettingForm('order')" class="bg-gray-100 text-gray-600 py-2 px-3 rounded-xl text-sm hover:bg-gray-200">إلغاء</button>
+                            </div>
+                        </form>
+                        <div class="overflow-x-auto border rounded-xl">
+                            <table class="w-full text-right border-collapse text-sm">
+                                <thead class="bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="p-2">الكود</th><th class="p-2">الاسم</th><th class="p-2 text-center">إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="order-types-body" class="divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border p-6 h-fit">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2">
+                            <i class="fa-solid fa-file-invoice text-indigo-500"></i> إعدادات أنواع الفواتير
+                        </h3>
+                        <form id="invoice-type-form" class="space-y-4 mb-6">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 mb-1">كود النوع</label>
+                                    <input type="text" id="invoice-type-code" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-700 mb-1">اسم النوع</label>
+                                    <input type="text" id="invoice-type-name" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="submit" class="flex-1 bg-indigo-600 text-white font-semibold py-2 rounded-xl text-sm hover:bg-indigo-700">حفظ</button>
+                                <button type="button" onclick="resetSettingForm('invoice')" class="bg-gray-100 text-gray-600 py-2 px-3 rounded-xl text-sm hover:bg-gray-200">إلغاء</button>
+                            </div>
+                        </form>
+                        <div class="overflow-x-auto border rounded-xl">
+                            <table class="w-full text-right border-collapse text-sm">
+                                <thead class="bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="p-2">الكود</th><th class="p-2">الاسم</th><th class="p-2 text-center">إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invoice-types-body" class="divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section id="invoice-tab" class="tab-content space-y-6 hidden">
                 <div class="bg-white rounded-2xl shadow-sm border p-6">
                     <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2 border-b pb-2">
                         <i class="fa-solid fa-file-invoice text-blue-600"></i> بيانات وتوجيه الفاتورة الجديدة
                     </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 pb-4 border-b">
                         <div id="target-branch-container">
-                            <label class="block text-xs font-bold text-gray-700 mb-1">توجيه الفاتورة إلى فرع</label>
-                            <select id="invoice-target-branch" class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 font-semibold text-blue-700">
-                            </select>
+                            <label class="block text-xs font-bold text-red-600 mb-1">الفرع الموجه له *</label>
+                            <select id="invoice-target-branch" class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 font-semibold text-blue-700"></select>
                         </div>
+                        <div>
+                            <label class="block text-xs font-bold text-red-600 mb-1">نوع الفاتورة *</label>
+                            <select id="inv-type-select" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 font-semibold"></select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-red-600 mb-1">نوع الأوردر *</label>
+                            <select id="ord-type-select" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 font-semibold"></select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-red-600 mb-1">رقم الفاتورة (يدوي) *</label>
+                            <input type="text" id="inv-manual-no" required class="w-full px-3 py-2 border border-red-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-bold" placeholder="أدخل رقم الفاتورة">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">اسم العميل</label>
                             <input type="text" id="cust-name" class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="الاسم الكامل">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">رقم التواصل</label>
+                            <input type="text" id="cust-phone" class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="رقم الهاتف">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">العنوان</label>
                             <input type="text" id="cust-address" class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="تفاصيل العنوان">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">رقم التواصل</label>
-                            <input type="text" id="cust-phone" class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="رقم الهاتف">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">لينك الموقع</label>
+                            <input type="url" id="cust-location" class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="رابط Google Maps">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">الملاحظات</label>
+                            <input type="text" id="cust-notes" class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="ملاحظات إضافية">
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 shadow-sm sticky top-2 z-10">
-                    <div class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
-                        <div>
-                            <label class="block text-xs font-bold text-blue-900 mb-1">كود الصنف (اكتب واضغط Enter)</label>
-                            <input type="text" id="inv-item-code" onchange="lookupInvoiceItem()" class="w-full px-3 py-2 border-blue-300 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-mono font-bold" placeholder="أدخل الكود">
+                    <div class="flex items-end gap-3">
+                        <div class="w-1/4">
+                            <label class="block text-xs font-bold text-blue-900 mb-1 flex justify-between">
+                                <span>كود الصنف (اكتب واضغط Enter)</span>
+                                <span class="text-gray-500 text-[10px]">اضغط F1 للبحث المتقدم</span>
+                            </label>
+                            <div class="flex relative">
+                                <input type="text" id="inv-item-code" onchange="lookupInvoiceItem()" class="w-full px-3 py-2 border-blue-300 border rounded-r-xl outline-none focus:ring-2 focus:ring-blue-500 font-mono font-bold" placeholder="أدخل الكود">
+                                <button type="button" onclick="openSearchModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-l-xl transition flex items-center justify-center" title="بحث متقدم">
+                                    <i class="fa-solid fa-search"></i>
+                                </button>
+                            </div>
                         </div>
-                        <div>
+                        <div class="flex-1">
                             <label class="block text-xs font-bold text-blue-900 mb-1">اسم الصنف</label>
                             <input type="text" id="inv-item-name" readonly class="w-full px-3 py-2 bg-gray-100 border border-blue-200 rounded-xl outline-none text-gray-500" placeholder="يظهر تلقائياً">
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-blue-900 mb-1">السعر (مفتوح للتعديل)</label>
+                        <div class="w-24">
+                            <label class="block text-xs font-bold text-blue-900 mb-1">السعر</label>
                             <input type="number" step="0.01" id="inv-item-price" class="w-full px-3 py-2 border-blue-300 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-bold text-blue-600">
                         </div>
-                        <div>
+                        <div class="w-20">
                             <label class="block text-xs font-bold text-blue-900 mb-1">الكمية</label>
                             <input type="number" id="inv-item-qty" value="1" min="1" class="w-full px-3 py-2 border-blue-300 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-center font-bold">
                         </div>
-                        <button type="button" onclick="addItemToInvoiceList()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-md">
-                            <i class="fa-solid fa-plus"></i> إضافة للفاتورة
+                        <button type="button" onclick="addItemToInvoiceList()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-md">
+                            <i class="fa-solid fa-plus"></i> إضافة
                         </button>
                     </div>
                 </div>
@@ -301,8 +446,8 @@
                                 <th class="p-3">كود</th>
                                 <th class="p-3">اسم الصنف</th>
                                 <th class="p-3">السعر الأساسي</th>
-                                <th class="p-3">السعر البيعي</th>
-                                <th class="p-3 text-center">الكمية</th>
+                                <th class="p-3 w-32">السعر البيعي</th>
+                                <th class="p-3 w-24 text-center">الكمية</th>
                                 <th class="p-3">الإجمالي</th>
                                 <th class="p-3">فرق السعر</th>
                                 <th class="p-3 text-center">إجراء</th>
@@ -335,26 +480,35 @@
                         <button onclick="processInvoice('SUSPENDED')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition shadow-sm">
                             <i class="fa-solid fa-pause"></i> حفظ وتعليق الفاتورة
                         </button>
-                        <button onclick="processInvoice('SENT')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition shadow-md">
-                            <i class="fa-solid fa-paper-plane"></i> حفظ وإرسال للفرع المختار
-                        </button>
+                        <button id="btn-send-invoice" onclick="processInvoice('SENT')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition shadow-md">
+                            </button>
                     </div>
                 </div>
             </section>
 
             <section id="suspended-tab" class="tab-content space-y-4 hidden">
-                <div class="bg-white rounded-2xl shadow-sm border p-4 bg-gray-50">
-                    <h3 class="font-bold text-gray-900">شاشة مراقبة وتأكيد الفواتير المعلقة والواردة للفروع</h3>
-                    <p class="text-xs text-gray-500 mt-1">تظهر هنا الفواتير الموجهة لفرعك أو جميع الفواتير لخدمة العملاء. يمكنك نسخ الأكواد، الأسماء، أو الهواتف بنقرة واحدة لل  الفوري.</p>
+                <div class="bg-white rounded-2xl shadow-sm border p-4 bg-gray-50 flex justify-between items-center flex-wrap gap-3">
+                    <div>
+                        <h3 class="font-bold text-gray-900">شاشة مراقبة الفواتير المعلقة</h3>
+                        <p class="text-xs text-gray-500 mt-1">تظهر هنا الفواتير. يمكنك النسخ بنقرة واحدة.</p>
+                    </div>
+                    <!-- إضافة مربع البحث الجديد -->
+                    <div class="relative w-full md:w-1/3">
+                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 text-xs">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" id="search-suspended" oninput="window.renderSuspendedInvoices()" class="w-full pl-3 pr-8 py-2 border rounded-xl outline-none text-sm font-bold shadow-sm" placeholder="ابحث برقم الفاتورة أو رقم الموبايل...">
+                    </div>
                 </div>
-                <div id="suspended-invoices-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- تم تغيير grid-cols ليعرض 3 كروت في الصف الواحد على الشاشات الكبيرة -->
+                <div id="suspended-invoices-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 </div>
             </section>
 
             <section id="reports-tab" class="tab-content space-y-6 hidden">
                 <div class="bg-white rounded-2xl shadow-sm border p-6">
                     <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-chart-pie text-blue-600"></i> فلترة واستعراض التقارير الذكية
+                        <i class="fa-solid fa-chart-pie text-blue-600"></i> التقارير الذكية الشاملة
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                         <div id="report-branch-filter-container">
@@ -374,13 +528,13 @@
                         <table class="w-full text-right border-collapse">
                             <thead>
                                 <tr class="bg-gray-100 text-xs font-bold text-gray-600 border-b">
-                                    <th class="p-3">رقم الفاتورة</th>
-                                    <th class="p-3">التاريخ والوقت</th>
-                                    <th class="p-3">الفرع الموجه له</th>
-                                    <th class="p-3">العميل</th>
-                                    <th class="p-3">عدد القطع</th>
-                                    <th class="p-3">قيمة الفاتورة</th>
-                                    <th class="p-3 text-center">العمليات</th>
+                                    <th class="p-2">رقم (يدوي)<br><input type="text" class="filter-input" data-col="manualNo" placeholder="بحث..."></th>
+                                    <th class="p-2">نوع الفاتورة<br><input type="text" class="filter-input" data-col="invType" placeholder="بحث..."></th>
+                                    <th class="p-2">الفرع<br><input type="text" class="filter-input" data-col="branch" placeholder="بحث..."></th>
+                                    <th class="p-2">العميل<br><input type="text" class="filter-input" data-col="cust" placeholder="بحث..."></th>
+                                    <th class="p-2">الملاحظات<br><input type="text" class="filter-input" data-col="notes" placeholder="بحث..."></th>
+                                    <th class="p-2">الإجمالي<br><input type="text" class="filter-input" data-col="total" placeholder="بحث..."></th>
+                                    <th class="p-2 text-center">العمليات</th>
                                 </tr>
                             </thead>
                             <tbody id="reports-table-body" class="text-sm divide-y">
@@ -399,7 +553,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, push, get, child, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // إعدادات Firebase الخاصة بالمشروع والمستقاة من قاعدة بياناتك الحية
         const firebaseConfig = {
             databaseURL: "https://project-46b45-default-rtdb.firebaseio.com/"
         };
@@ -407,26 +560,36 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // متغيرات الجلسة المحلية والنظام
         let currentUser = null;
         let allItems = {};
         let allBranches = {};
+        let orderTypes = {};
+        let invoiceTypes = {};
         let currentInvoiceItemsArray = [];
-        let editingItemCode = null;
         let editingBranchCode = null;
+        let suspendedInvoicesData = {};
+        
+        let reportDataCache = []; // للفلترة المتقدمة
 
-        // متغيرات تقسيم صفحات جدول الأصناف لـ 20 صنف فقط لكل صفحة
         window.currentItemsPage = 1;
         const itemsPerPage = 20;
 
-        /* 🔒 آلية التحقق الآمن لبيانات تسجيل الدخول وتفادي تعارض القيم 🔒 */
+        // اختصار F1 لفتح بحث الأصناف
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F1') {
+                e.preventDefault();
+                if (!document.getElementById('invoice-tab').classList.contains('hidden')) {
+                    openSearchModal();
+                }
+            }
+        });
+
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const codeInput = document.getElementById('login-code').value.trim();
             const passwordInput = document.getElementById('login-password').value;
 
             try {
-                // 1. التحقق أولاً من عقدة المشرفين admins
                 const adminSnapshot = await get(ref(db, 'admins'));
                 if (adminSnapshot.exists()) {
                     const admins = adminSnapshot.val();
@@ -438,8 +601,6 @@
                         }
                     }
                 }
-
-                // 2. التحقق من عقدة الفروع المسجلة branches
                 const branchSnapshot = await get(ref(db, 'branches'));
                 if (branchSnapshot.exists()) {
                     const branches = branchSnapshot.val();
@@ -453,7 +614,6 @@
                         return;
                     }
                 }
-
                 alert('خطأ في كود المستخدم أو كلمة المرور، يرجى المحاولة مرة أخرى.');
             } catch (error) {
                 console.error(error);
@@ -461,37 +621,65 @@
             }
         });
 
-        // تهيئة النظام وعرض لوحة التحكم بالكامل حسب الصلاحيات الممنوحة
-        window.initDashboard = function() {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('main-dashboard').classList.remove('hidden');
-            document.getElementById('user-badge').innerText = `${currentUser.name} (${currentUser.role === 'ADMIN' ? 'مدير النظام' : currentUser.role === 'CUSTOMER_SERVICE' ? 'خدمة العملاء' : 'فرع  '})`;
+      window.initDashboard = function() {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('main-dashboard').classList.remove('hidden');
+    
+    const userBadge = document.getElementById('user-badge');
+    if (userBadge) {
+        userBadge.innerText = `${currentUser.name} (${currentUser.role === 'ADMIN' ? 'مدير النظام' : currentUser.role === 'CUSTOMER_SERVICE' ? 'خدمة العملاء' : 'فرع'})`;
+    }
 
-            // إخفاء أو إظهار خيارات التوجيه بناءً على طبيعة الكيان المسجل دخول
-            // إخفاء التبويبات والخيارات غير المسموح للفرع بالوصول إليها
-            if (currentUser.role === 'BRANCH') {
-                document.getElementById('btn-items-tab').classList.add('hidden');           // إخفاء تبويب الأصناف
-                document.getElementById('btn-branches-tab').classList.add('hidden');        // إخفاء تبويب الفروع
-                document.getElementById('target-branch-container').classList.add('hidden'); // إخفاء توجيه الفواتير
-                document.getElementById('report-branch-filter-container').classList.add('hidden'); // إخفاء فلتر التقارير
-                
-                // تلقائياً، إذا دخل الفرع، نجعله يفتح تبويب "الفواتير" مباشرة بدلاً من "الأصناف"
-                window.switchTab('invoice-tab');
-            } else {
-                // إظهار التبويبات للمدير / خدمة العملاء
-                document.getElementById('btn-items-tab').classList.remove('hidden');
-                document.getElementById('btn-branches-tab').classList.remove('hidden');
-                document.getElementById('target-branch-container').classList.remove('hidden');
-                document.getElementById('report-branch-filter-container').classList.remove('hidden');
-            }
+    const btnSend = document.getElementById('btn-send-invoice');
 
-            // تفعيل مستمعي ومراقبي البيانات الحية من فيربيز
-            observeItems();
-            observeBranches();
-            observeSuspendedInvoices();
-        };
+    // منطق التحكم في ظهور زر الإرسال بناءً على الصلاحيات
+    if (currentUser.role === 'BRANCH') {
+        document.getElementById('btn-items-tab').classList.add('hidden');
+        document.getElementById('btn-branches-tab').classList.add('hidden');
+        document.getElementById('btn-settings-tab').classList.add('hidden');
+        document.getElementById('target-branch-container').classList.add('hidden');
+        document.getElementById('report-branch-filter-container').classList.add('hidden');
+        
+        if (btnSend) {
+            btnSend.innerHTML = '<i class="fa-solid fa-save"></i> حفظ';
+            btnSend.classList.remove('hidden');
+        }
+        window.switchTab('invoice-tab');
+    } 
+    else if (currentUser.role === 'CUSTOMER_SERVICE') {
+        document.getElementById('btn-items-tab').classList.remove('hidden');
+        document.getElementById('btn-branches-tab').classList.remove('hidden');
+        document.getElementById('btn-settings-tab').classList.remove('hidden');
+        document.getElementById('target-branch-container').classList.remove('hidden');
+        document.getElementById('report-branch-filter-container').classList.remove('hidden');
+        
+        // --- الحل الاحترافي هنا ---
+        if (btnSend) {
+            btnSend.style.display = 'none'; // إخفاء الزر نهائياً عن خدمة العملاء
+        }
+        window.switchTab('invoice-tab');
+    } 
+    else {
+        // ADMIN
+        document.getElementById('btn-items-tab').classList.remove('hidden');
+        document.getElementById('btn-branches-tab').classList.remove('hidden');
+        document.getElementById('btn-settings-tab').classList.remove('hidden');
+        document.getElementById('target-branch-container').classList.remove('hidden');
+        document.getElementById('report-branch-filter-container').classList.remove('hidden');
+        
+        if (btnSend) {
+            btnSend.innerHTML = '<i class="fa-solid fa-paper-plane"></i> حفظ وإرسال للفرع المختار';
+            btnSend.style.display = 'block'; // التأكد من ظهوره للمدير
+        }
+        window.switchTab('invoice-tab');
+    }
 
-        // تسجيل الخروج وإعادة تعيين الجلسة
+    observeItems();
+    observeBranches();
+    observeSuspendedInvoices();
+    observeSettings();
+};
+
         window.logout = function() {
             currentUser = null;
             document.getElementById('main-dashboard').classList.add('hidden');
@@ -499,7 +687,6 @@
             document.getElementById('login-form').reset();
         };
 
-        // التبديل السلس والسريع بين التبويبات والأقسام المختلفة
         window.switchTab = function(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(tabId).classList.remove('hidden');
@@ -508,29 +695,93 @@
                 btn.classList.remove('bg-blue-600', 'text-white');
                 btn.classList.add('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
             });
-            document.getElementById(`btn-${tabId}`).classList.remove('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
-            document.getElementById(`btn-${tabId}`).classList.add('bg-blue-600', 'text-white');
-
-            if (tabId === 'reports-tab') {
-                loadReportsData();
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            if(activeBtn) {
+                activeBtn.classList.remove('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                activeBtn.classList.add('bg-blue-600', 'text-white');
             }
+            if (tabId === 'reports-tab') loadReportsData();
         };
 
-        /* 📋 دالة المحرك الذكي لنسخ النصوص التفاعلية داخل البطاقات والريسبت 📋 */
         window.copyText = function(btnElement, textToCopy) {
             if (!textToCopy || textToCopy === '-' || textToCopy.trim() === '') return;
             navigator.clipboard.writeText(textToCopy).then(() => {
                 const originalIcon = btnElement.innerHTML;
-                btnElement.innerHTML = '<i class="fa-solid fa-check text-green-500 text-[10px]"></i>';
+                btnElement.innerHTML = '<i class="fa-solid fa-check text-green-500"></i>';
                 setTimeout(() => { btnElement.innerHTML = originalIcon; }, 1500);
-            }).catch(err => {
-                console.error('فشل النسخ: ', err);
             });
         };
 
-        /* --------------------------------------------------------------------
-           أولاً: إدارة وتحديث وقراءة ملفات الأصناف (مع ميزة الـ 20 صنف والبحث المتزامن)
-           -------------------------------------------------------------------- */
+        /* --- إعدادات الأنواع --- */
+        function observeSettings() {
+            onValue(ref(db, 'settings/orderTypes'), (snap) => {
+                orderTypes = snap.val() || {};
+                renderSettingsTables();
+                populateDropdowns();
+            });
+            onValue(ref(db, 'settings/invoiceTypes'), (snap) => {
+                invoiceTypes = snap.val() || {};
+                renderSettingsTables();
+                populateDropdowns();
+            });
+        }
+
+        document.getElementById('order-type-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const code = document.getElementById('order-type-code').value.trim();
+            const name = document.getElementById('order-type-name').value.trim();
+            await set(ref(db, `settings/orderTypes/${code}`), { code, name });
+            resetSettingForm('order');
+        });
+
+        document.getElementById('invoice-type-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const code = document.getElementById('invoice-type-code').value.trim();
+            const name = document.getElementById('invoice-type-name').value.trim();
+            await set(ref(db, `settings/invoiceTypes/${code}`), { code, name });
+            resetSettingForm('invoice');
+        });
+
+        window.resetSettingForm = function(type) {
+            if (type === 'order') { document.getElementById('order-type-form').reset(); document.getElementById('order-type-code').removeAttribute('readonly'); }
+            else { document.getElementById('invoice-type-form').reset(); document.getElementById('invoice-type-code').removeAttribute('readonly'); }
+        };
+
+        window.editSetting = function(type, code) {
+            if (type === 'order') {
+                document.getElementById('order-type-code').value = orderTypes[code].code;
+                document.getElementById('order-type-code').setAttribute('readonly', 'true');
+                document.getElementById('order-type-name').value = orderTypes[code].name;
+            } else {
+                document.getElementById('invoice-type-code').value = invoiceTypes[code].code;
+                document.getElementById('invoice-type-code').setAttribute('readonly', 'true');
+                document.getElementById('invoice-type-name').value = invoiceTypes[code].name;
+            }
+        };
+
+        function renderSettingsTables() {
+            let oBody = document.getElementById('order-types-body');
+            oBody.innerHTML = '';
+            for(let key in orderTypes) {
+                oBody.innerHTML += `<tr><td class="p-2">${orderTypes[key].code}</td><td class="p-2">${orderTypes[key].name}</td><td class="p-2 text-center"><button onclick="editSetting('order', '${key}')" class="text-amber-500"><i class="fa-solid fa-pen"></i></button></td></tr>`;
+            }
+            let iBody = document.getElementById('invoice-types-body');
+            iBody.innerHTML = '';
+            for(let key in invoiceTypes) {
+                iBody.innerHTML += `<tr><td class="p-2">${invoiceTypes[key].code}</td><td class="p-2">${invoiceTypes[key].name}</td><td class="p-2 text-center"><button onclick="editSetting('invoice', '${key}')" class="text-amber-500"><i class="fa-solid fa-pen"></i></button></td></tr>`;
+            }
+        }
+
+        function populateDropdowns() {
+            let oSel = document.getElementById('ord-type-select');
+            let iSel = document.getElementById('inv-type-select');
+            oSel.innerHTML = '<option value="">اختر نوع الأوردر...</option>';
+            iSel.innerHTML = '<option value="">اختر نوع الفاتورة...</option>';
+            for(let k in orderTypes) oSel.innerHTML += `<option value="${orderTypes[k].name}">${orderTypes[k].name}</option>`;
+            for(let k in invoiceTypes) iSel.innerHTML += `<option value="${invoiceTypes[k].name}">${invoiceTypes[k].name}</option>`;
+        }
+
+        /* --- الأصناف --- */
         function observeItems() {
             onValue(ref(db, 'items'), (snapshot) => {
                 allItems = snapshot.val() || {};
@@ -538,42 +789,32 @@
             });
         }
 
-        // إضافة وتحديث صنف يدوياً
+        /* دوال الأصناف من الكود الأصلي احتفظت بها كاملة هنا */
         document.getElementById('item-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const code = document.getElementById('item-code').value.trim();
             const name = document.getElementById('item-name').value.trim();
             const price = parseFloat(document.getElementById('item-price').value);
-
             await set(ref(db, `items/${code}`), { code, name, price });
             resetItemForm();
         });
-
         window.editItem = function(code) {
             const item = allItems[code];
             if (item) {
-                editingItemCode = code;
                 document.getElementById('item-code').value = item.code;
                 document.getElementById('item-code').setAttribute('readonly', 'true');
                 document.getElementById('item-name').value = item.name;
                 document.getElementById('item-price').value = item.price;
-                document.getElementById('item-form-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-500"></i> تعديل بيانات الصنف`;
             }
         };
-
         window.resetItemForm = function() {
-            editingItemCode = null;
             document.getElementById('item-code').removeAttribute('readonly');
             document.getElementById('item-form').reset();
-            document.getElementById('item-form-title').innerHTML = `<i class="fa-solid fa-plus-circle text-blue-500"></i> إضافة صنف جديد`;
         };
-
-        // بناء وعرض جدول المواد الفعالة مقسماً على صفحات (20 صنف فقط) لضمان السرعة الفائقة
         window.renderItemsTable = function() {
             const tbody = document.getElementById('items-table-body');
             const searchTerm = document.getElementById('search-items').value.toLowerCase();
             tbody.innerHTML = '';
-
             let filteredItems = [];
             for (let code in allItems) {
                 const item = allItems[code];
@@ -581,20 +822,13 @@
                     filteredItems.push(item);
                 }
             }
-
             if (filteredItems.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400 text-xs">لا توجد أصناف مطابقة لبيانات البحث</td></tr>`;
-                document.getElementById('items-page-info').innerText = `صفحة 1 من 1`;
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">لا توجد أصناف</td></tr>`;
                 return;
             }
-
             const totalPages = Math.ceil(filteredItems.length / itemsPerPage) || 1;
             if (window.currentItemsPage > totalPages) window.currentItemsPage = totalPages;
-
-            const startIndex = (window.currentItemsPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const paginatedItems = filteredItems.slice(startIndex, endIndex);
-
+            const paginatedItems = filteredItems.slice((window.currentItemsPage - 1) * itemsPerPage, window.currentItemsPage * itemsPerPage);
             paginatedItems.forEach(item => {
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-50 transition">
@@ -602,164 +836,128 @@
                         <td class="p-3 font-semibold">${item.name}</td>
                         <td class="p-3 text-blue-600 font-bold">${parseFloat(item.price).toFixed(2)}</td>
                         <td class="p-3 text-center">
-                            <button onclick="editItem('${item.code}')" class="text-amber-600 hover:text-amber-800 mx-1"><i class="fa-solid fa-pen"></i> تعديل</button>
+                            <button onclick="editItem('${item.code}')" class="text-amber-600 hover:text-amber-800"><i class="fa-solid fa-pen"></i></button>
                         </td>
                     </tr>
                 `;
             });
-
-            document.getElementById('items-page-info').innerText = `صفحة ${window.currentItemsPage} من ${totalPages} (إجمالي ${filteredItems.length} صنف)`;
+            document.getElementById('items-page-info').innerText = `صفحة ${window.currentItemsPage} من ${totalPages}`;
         };
+        window.nextItemPage = function() { window.currentItemsPage++; window.renderItemsTable(); };
+        window.prevItemPage = function() { if (window.currentItemsPage > 1) { window.currentItemsPage--; window.renderItemsTable(); } };
 
-        window.nextItemPage = function() {
-            const searchTerm = document.getElementById('search-items').value.toLowerCase();
-            let count = 0;
-            for (let code in allItems) {
-                if (allItems[code].code.toLowerCase().includes(searchTerm) || allItems[code].name.toLowerCase().includes(searchTerm)) count++;
-            }
-            const totalPages = Math.ceil(count / itemsPerPage) || 1;
-            if (window.currentItemsPage < totalPages) {
-                window.currentItemsPage++;
-                window.renderItemsTable();
-            }
-        };
-
-        window.prevItemPage = function() {
-            if (window.currentItemsPage > 1) {
-                window.currentItemsPage--;
-                window.renderItemsTable();
-            }
-        };
-
-        // استيراد الأصناف الذكي من شيت الإكسيل مدمجاً مع ميزة التحقق من وجود الصنف مسبقاً
-        document.getElementById('excel-file').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-                let updatedCount = 0;
-                let addedCount = 0;
-
-                for (let i = 1; i < jsonData.length; i++) {
-                    const row = jsonData[i];
-                    if (!row[0]) continue;
-
-                    const code = String(row[0]).trim();
-                    const name = String(row[1]).trim();
-                    const price = parseFloat(row[2]);
-
-                    if (code && name && !isNaN(price)) {
-                        if (allItems[code]) {
-                            await update(ref(db, `items/${code}`), { name, price });
-                            updatedCount++;
-                        } else {
-                            await set(ref(db, `items/${code}`), { code, name, price });
-                            addedCount++;
-                        }
-                    }
-                }
-
-                const statusBox = document.getElementById('excel-status');
-                statusBox.innerText = `تم الانتهاء بنجاح: إضافة ${addedCount} صنف جديد، وتحديث ${updatedCount} صنف مسجل سابقاً.`;
-                statusBox.classList.remove('hidden');
-                document.getElementById('excel-file').value = '';
-            };
-            reader.readAsArrayBuffer(file);
-        });
-
-
-        /* --------------------------------------------------------------------
-           ثانياً: إدارة وهيكلة الفروع والكيانات المصرح لها
-           -------------------------------------------------------------------- */
+        /* --- الفروع --- */
         function observeBranches() {
             onValue(ref(db, 'branches'), (snapshot) => {
                 allBranches = snapshot.val() || {};
-                renderBranchesTable();
-                populateTargetBranchesDropdown();
+                const tbody = document.getElementById('branches-table-body');
+                tbody.innerHTML = '';
+                const selectInvoice = document.getElementById('invoice-target-branch');
+                const selectReport = document.getElementById('report-branch-select');
+                selectInvoice.innerHTML = '';
+                selectReport.innerHTML = '<option value="ALL">جميع الفروع والخدمات</option>';
+
+                for (let code in allBranches) {
+                    const b = allBranches[code];
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3 font-mono font-bold">${b.code}</td>
+                            <td class="p-3 font-semibold">${b.name}</td>
+                            <td class="p-3"><span class="px-2 py-1 rounded-full text-xs font-bold bg-gray-200">${b.type}</span></td>
+                            <td class="p-3 text-center"><button onclick="editBranch('${b.code}')" class="text-amber-600"><i class="fa-solid fa-pen"></i></button></td>
+                        </tr>
+                    `;
+                    if (b.type === 'BRANCH') {
+                        const opt = `<option value="${b.code}">${b.name}</option>`;
+                        selectInvoice.innerHTML += opt;
+                        selectReport.innerHTML += opt;
+                    }
+                }
             });
         }
-
         document.getElementById('branch-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const code = document.getElementById('branch-code').value.trim();
-            const name = document.getElementById('branch-name').value.trim();
-            const password = document.getElementById('branch-password').value;
-            const type = document.getElementById('branch-type').value;
-
-            await set(ref(db, `branches/${code}`), { code, name, password, type });
-            resetBranchForm();
+            await set(ref(db, `branches/${code}`), { 
+                code, 
+                name: document.getElementById('branch-name').value.trim(), 
+                password: document.getElementById('branch-password').value, 
+                type: document.getElementById('branch-type').value 
+            });
+            document.getElementById('branch-form').reset();
         });
-
         window.editBranch = function(code) {
-            const branch = allBranches[code];
-            if (branch) {
-                editingBranchCode = code;
-                document.getElementById('branch-code').value = branch.code;
+            const b = allBranches[code];
+            if(b){
+                document.getElementById('branch-code').value = b.code;
                 document.getElementById('branch-code').setAttribute('readonly', 'true');
-                document.getElementById('branch-name').value = branch.name;
-                document.getElementById('branch-password').value = branch.password;
-                document.getElementById('branch-type').value = branch.type;
-                document.getElementById('branch-form-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-500"></i> تعديل بيانات الفرع`;
+                document.getElementById('branch-name').value = b.name;
+                document.getElementById('branch-password').value = b.password;
+                document.getElementById('branch-type').value = b.type;
             }
         };
-
         window.resetBranchForm = function() {
-            editingBranchCode = null;
             document.getElementById('branch-code').removeAttribute('readonly');
             document.getElementById('branch-form').reset();
-            document.getElementById('branch-form-title').innerHTML = `<i class="fa-solid fa-code-branch text-indigo-500"></i> إضافة فرع جديد`;
         };
 
-        function renderBranchesTable() {
-            const tbody = document.getElementById('branches-table-body');
+        /* --- محرك الفواتير والإضافات المتقدمة --- */
+        
+        // Modal Search
+        window.openSearchModal = function() {
+            document.getElementById('search-modal').classList.remove('hidden');
+            document.getElementById('modal-search-input').value = '';
+            document.getElementById('modal-search-input').focus();
+            filterModalItems();
+        };
+        window.closeSearchModal = function() {
+            document.getElementById('search-modal').classList.add('hidden');
+        };
+        window.filterModalItems = function() {
+            const search = document.getElementById('modal-search-input').value.toLowerCase();
+            const tbody = document.getElementById('modal-items-tbody');
             tbody.innerHTML = '';
-            for (let code in allBranches) {
-                const b = allBranches[code];
-                tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="p-3 font-mono font-bold">${b.code}</td>
-                        <td class="p-3 font-semibold">${b.name}</td>
-                        <td class="p-3">
-                            <span class="px-2.5 py-1 rounded-full text-xs font-bold ${b.type === 'CUSTOMER_SERVICE' ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'}">
-                                ${b.type === 'CUSTOMER_SERVICE' ? 'خدمة عملاء' : 'فرع صيدلية'}
-                            </span>
-                        </td>
-                        <td class="p-3 text-center">
-                            <button onclick="editBranch('${b.code}')" class="text-amber-600 hover:text-amber-800 mx-1"><i class="fa-solid fa-pen"></i> تعديل</button>
-                        </td>
-                    </tr>
-                `;
-            }
-        }
-
-        function populateTargetBranchesDropdown() {
-            const selectInvoice = document.getElementById('invoice-target-branch');
-            const selectReport = document.getElementById('report-branch-select');
+            let count = 0; // عداد لحصر النتائج
             
-            selectInvoice.innerHTML = '';
-            selectReport.innerHTML = '<option value="ALL">جميع الفروع والخدمات</option>';
-
-            for (let code in allBranches) {
-                const b = allBranches[code];
-                if (b.type === 'BRANCH') {
-                    const opt = `<option value="${b.code}">${b.name} (${b.code})</option>`;
-                    selectInvoice.innerHTML += opt;
-                    selectReport.innerHTML += opt;
+            for (let code in allItems) {
+                const item = allItems[code];
+                if (item.code.toLowerCase().includes(search) || item.name.toLowerCase().includes(search)) {
+                    if (count >= 10) break; // التوقف فور الوصول لـ 10 أصناف
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3 text-center"><input type="checkbox" class="item-checkbox" data-code="${item.code}"></td>
+                            <td class="p-3 font-mono font-bold">${item.code}</td>
+                            <td class="p-3 font-semibold text-xs">${item.name}</td>
+                            <td class="p-3 text-blue-600 font-bold text-xs">${parseFloat(item.price).toFixed(2)}</td>
+                        </tr>
+                    `;
+                    count++;
                 }
             }
-        }
+        };
+        window.toggleAllModalCheckboxes = function() {
+            const isChecked = document.getElementById('select-all-modal').checked;
+            document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = isChecked);
+        };
+        window.addSelectedItemsFromModal = function() {
+            document.querySelectorAll('.item-checkbox:checked').forEach(cb => {
+                const code = cb.getAttribute('data-code');
+                const item = allItems[code];
+                currentInvoiceItemsArray.push({
+                    code: item.code,
+                    name: item.name,
+                    originalPrice: item.price,
+                    salePrice: item.price,
+                    qty: 1,
+                    total: item.price,
+                    diff: 0
+                });
+            });
+            renderCurrentInvoiceTable();
+            closeSearchModal();
+        };
 
-
-        /* --------------------------------------------------------------------
-           ثالثاً: إدارة ومحرك عملية بناء الفواتير والعمليات الحسابية
-           -------------------------------------------------------------------- */
+        // Standard Add
         window.lookupInvoiceItem = function() {
             const code = document.getElementById('inv-item-code').value.trim();
             const item = allItems[code];
@@ -769,10 +967,7 @@
                 document.getElementById('inv-item-qty').value = 1;
                 document.getElementById('inv-item-qty').focus();
             } else {
-                if(code !== "") {
-                    alert('الكود الذي أدخلته غير مطابق لأي صنف مسجل!');
-                    document.getElementById('inv-item-code').value = "";
-                }
+                if(code !== "") { alert('صنف غير مسجل!'); document.getElementById('inv-item-code').value = ""; }
             }
         };
 
@@ -781,28 +976,11 @@
             const name = document.getElementById('inv-item-name').value;
             const salePrice = parseFloat(document.getElementById('inv-item-price').value);
             const qty = parseInt(document.getElementById('inv-item-qty').value);
-
-            if (!code || !name || isNaN(salePrice) || isNaN(qty) || qty <= 0) {
-                alert('يرجى التحقق من إدخال بيانات صنف صحيحة أولاً.');
-                return;
-            }
-
+            if (!code || !name || isNaN(salePrice) || isNaN(qty) || qty <= 0) return;
             const originalItem = allItems[code];
             const originalPrice = originalItem ? originalItem.price : salePrice;
-            const priceDifference = (salePrice - originalPrice) * qty;
-
-            currentInvoiceItemsArray.push({
-                code,
-                name,
-                originalPrice,
-                salePrice,
-                qty,
-                total: salePrice * qty,
-                diff: priceDifference
-            });
-
+            currentInvoiceItemsArray.push({ code, name, originalPrice, salePrice, qty, total: salePrice * qty, diff: (salePrice - originalPrice) * qty });
             renderCurrentInvoiceTable();
-            
             document.getElementById('inv-item-code').value = '';
             document.getElementById('inv-item-name').value = '';
             document.getElementById('inv-item-price').value = '';
@@ -815,13 +993,19 @@
             renderCurrentInvoiceTable();
         };
 
+        window.updateInvoiceItem = function(index, field, value) {
+            let val = parseFloat(value) || 0;
+            currentInvoiceItemsArray[index][field] = val;
+            let item = currentInvoiceItemsArray[index];
+            item.total = item.salePrice * item.qty;
+            item.diff = (item.salePrice - item.originalPrice) * item.qty;
+            renderCurrentInvoiceTable();
+        };
+
         function renderCurrentInvoiceTable() {
             const tbody = document.getElementById('current-invoice-items');
             tbody.innerHTML = '';
-
-            let totalAmount = 0;
-            let totalPieces = 0;
-            let totalDiff = 0;
+            let totalAmount = 0; let totalPieces = 0; let totalDiff = 0;
 
             currentInvoiceItemsArray.forEach((item, index) => {
                 totalAmount += item.total;
@@ -831,10 +1015,14 @@
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-50">
                         <td class="p-3 font-mono">${item.code}</td>
-                        <td class="p-3 font-semibold">${item.name}</td>
+                        <td class="p-3 font-semibold text-xs">${item.name}</td>
                         <td class="p-3 text-gray-500">${parseFloat(item.originalPrice).toFixed(2)}</td>
-                        <td class="p-3 font-bold text-blue-600">${parseFloat(item.salePrice).toFixed(2)}</td>
-                        <td class="p-3 text-center font-bold">${item.qty}</td>
+                        <td class="p-3">
+                            <input type="number" step="0.01" value="${item.salePrice}" class="w-full border rounded px-2 py-1 outline-none text-blue-600 font-bold" onchange="updateInvoiceItem(${index}, 'salePrice', this.value)">
+                        </td>
+                        <td class="p-3">
+                            <input type="number" value="${item.qty}" class="w-full border rounded px-2 py-1 outline-none text-center font-bold" onchange="updateInvoiceItem(${index}, 'qty', this.value)">
+                        </td>
                         <td class="p-3 font-bold">${parseFloat(item.total).toFixed(2)}</td>
                         <td class="p-3 font-bold ${item.diff !== 0 ? 'text-amber-600' : 'text-gray-400'}">${parseFloat(item.diff).toFixed(2)}</td>
                         <td class="p-3 text-center">
@@ -851,145 +1039,175 @@
         }
 
         window.processInvoice = async function(statusType) {
+            const manualNo = document.getElementById('inv-manual-no').value.trim();
+            const invType = document.getElementById('inv-type-select').value;
+            const ordType = document.getElementById('ord-type-select').value;
+
+            if (!manualNo || !invType || !ordType) {
+                alert('عفواً، أرقام الفاتورة، نوع الفاتورة، ونوع الأوردر حقول إلزامية لا يمكن الحفظ بدونها!');
+                return;
+            }
             if (currentInvoiceItemsArray.length === 0) {
-                alert('لا يمكن حفظ فاتورة فارغة لا تحتوي على أي أصناف!');
+                alert('الفاتورة فارغة!');
                 return;
             }
 
-            let targetBranch = "";
-            if (currentUser.role === 'BRANCH') {
-                targetBranch = currentUser.code;
-            } else {
-                targetBranch = document.getElementById('invoice-target-branch').value;
-            }
-
+            let targetBranch = currentUser.role === 'BRANCH' ? currentUser.code : document.getElementById('invoice-target-branch').value;
             const invoiceId = "INV-" + Date.now();
             const invoiceData = {
-                invoiceNo: invoiceId,
+                invoiceNo: invoiceId, // الآي دي الداخلي
+                manualInvoiceNo: manualNo, // الرقم المدخل يدويا
+                invoiceType: invType,
+                orderType: ordType,
                 timestamp: Date.now(),
                 dateString: new Date().toLocaleString('ar-EG'),
                 customer: {
                     name: document.getElementById('cust-name').value.trim() || "عميل نقدي",
                     address: document.getElementById('cust-address').value.trim() || "-",
-                    phone: document.getElementById('cust-phone').value.trim() || "-"
+                    phone: document.getElementById('cust-phone').value.trim() || "-",
+                    notes: document.getElementById('cust-notes').value.trim() || "-",
+                    locationLink: document.getElementById('cust-location').value.trim() || ""
                 },
                 items: currentInvoiceItemsArray,
                 totalAmount: parseFloat(document.getElementById('tot-invoice-amount').innerText),
                 totalPieces: parseInt(document.getElementById('tot-pieces').innerText),
-                totalDistinctItems: currentInvoiceItemsArray.length,
-                totalPriceDiff: parseFloat(document.getElementById('tot-price-diff').innerText),
                 targetBranch: targetBranch,
                 createdBy: currentUser.name,
-                createdByUserCode: currentUser.code,
                 status: statusType
             };
 
             await set(ref(db, `invoices/${invoiceId}`), invoiceData);
-            alert(statusType === 'SUSPENDED' ? 'تم تعليق الفاتورة بنجاح في الفواتير المعلقة!' : 'تم حفظ الفاتورة وإرسالها للفرع بنجاح.');
+            alert('تم الحفظ بنجاح.');
             
             currentInvoiceItemsArray = [];
             renderCurrentInvoiceTable();
+            document.getElementById('inv-manual-no').value = '';
             document.getElementById('cust-name').value = '';
             document.getElementById('cust-address').value = '';
             document.getElementById('cust-phone').value = '';
+            document.getElementById('cust-notes').value = '';
+            document.getElementById('cust-location').value = '';
         };
 
-
-        /* --------------------------------------------------------------------
-           رابعاً: قسم الفواتير المعلقة ومراقبتها (مدمج به أزرار النسخ الذكية الفورية)
-           -------------------------------------------------------------------- */
+        /* --- الفواتير المعلقة --- */
         function observeSuspendedInvoices() {
             onValue(ref(db, 'invoices'), (snapshot) => {
-                const allInvoices = snapshot.val() || {};
-                const container = document.getElementById('suspended-invoices-list');
-                container.innerHTML = '';
-                
-                let countSuspended = 0;
-
-                for (let id in allInvoices) {
-                    const inv = allInvoices[id];
-                    if (inv.status !== 'SUSPENDED') continue;
-
-                    if (currentUser.role === 'BRANCH' && String(inv.targetBranch) !== String(currentUser.code)) {
-                        continue;
-                    }
-
-                    countSuspended++;
-
-                    // دمج زر النسخ التفاعلي بجانب كود الصنف واسم الصنف لسرعة البحث والعمل
-                    let itemsHtml = inv.items.map(i => `
-                        <div class="flex justify-between items-center text-xs border-b pb-1.5 pt-1.5 text-gray-600">
-                            <div class="flex flex-col gap-1 w-full">
-                                <div class="flex items-center gap-2">
-                                    <span class="bg-gray-100 text-blue-700 px-1.5 py-0.5 rounded font-mono font-bold">${i.code}</span>
-                                    <button type="button" onclick="window.copyText(this, '${i.code}')" class="text-gray-400 hover:text-blue-600 transition" title="نسخ الكود"><i class="fa-regular fa-copy"></i></button>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="font-bold text-gray-900">${i.name} (×${i.qty})</span>
-                                    <button type="button" onclick="window.copyText(this, '${i.name}')" class="text-gray-400 hover:text-blue-600 transition" title="نسخ الاسم"><i class="fa-regular fa-copy"></i></button>
-                                </div>
-                            </div>
-                            <span class="font-black text-gray-950 w-16 text-left">${parseFloat(i.total).toFixed(2)}</span>
-                        </div>
-                    `).join('');
-
-                    // دمج زر النسخ التفاعلي بجانب رقم هاتف العميل
-                    container.innerHTML += `
-                        <div class="bg-white rounded-2xl shadow-sm border p-5 flex flex-col justify-between space-y-4">
-                            <div>
-                                <div class="flex justify-between items-start border-b pb-2 mb-3">
-                                    <div>
-                                        <span class="text-xs text-blue-600 font-mono font-bold block">${inv.invoiceNo}</span>
-                                        <h4 class="font-bold text-gray-900 text-sm mt-0.5"><i class="fa-solid fa-user-tag text-gray-400"></i> ${inv.customer.name}</h4>
-                                        <div class="flex items-center gap-2 mt-1">
-                                            <i class="fa-solid fa-phone text-gray-400 text-xs"></i>
-                                            <span class="text-xs font-semibold text-gray-700" dir="ltr">${inv.customer.phone || '-'}</span>
-                                            ${inv.customer.phone && inv.customer.phone !== '-' ? `<button type="button" onclick="window.copyText(this, '${inv.customer.phone}')" class="text-gray-400 hover:text-green-600 transition" title="نسخ الهاتف"><i class="fa-regular fa-copy"></i></button>` : ''}
-                                        </div>
-                                    </div>
-                                    <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${inv.dateString}</span>
-                                </div>
-                                <div class="space-y-1 mb-4 max-h-32 overflow-y-auto pr-1">
-                                    ${itemsHtml}
-                                </div>
-                                <div class="flex justify-between items-center bg-gray-50 p-2 rounded-xl text-sm">
-                                    <span class="font-bold text-gray-500 text-xs">إجمالي الفاتورة:</span>
-                                    <span class="font-black text-blue-600">${parseFloat(inv.totalAmount).toFixed(2)} ج.م</span>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-3 gap-2 pt-2 border-t">
-                                <button onclick="finalizeSuspendedInvoice('${inv.invoiceNo}')" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-lg transition"><i class="fa-solid fa-check"></i> حفظ كنهائي</button>
-                                <button onclick="cancelInvoice('${inv.invoiceNo}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold py-2 rounded-lg transition"><i class="fa-solid fa-xmark"></i> إلغاء</button>
-                                <button onclick="printThermalReceipt('${inv.invoiceNo}')" class="bg-gray-800 hover:bg-gray-900 text-white text-xs font-bold py-2 rounded-lg transition"><i class="fa-solid fa-print"></i> ريسيت 80mm</button>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                const badge = document.getElementById('suspended-count');
-                if (countSuspended > 0) {
-                    badge.innerText = countSuspended;
-                    badge.classList.remove('hidden');
-                } else {
-                    badge.classList.add('hidden');
-                }
+                suspendedInvoicesData = snapshot.val() || {};
+                window.renderSuspendedInvoices(); // فصلنا الدالة لتسهيل البحث المباشر
             });
         }
 
+        window.renderSuspendedInvoices = function() {
+            const container = document.getElementById('suspended-invoices-list');
+            const searchTerm = (document.getElementById('search-suspended')?.value || '').toLowerCase();
+            container.innerHTML = '';
+            let countSuspended = 0;
+
+            for (let id in suspendedInvoicesData) {
+                const inv = suspendedInvoicesData[id];
+                if (inv.status !== 'SUSPENDED') continue;
+                if (currentUser.role === 'BRANCH' && String(inv.targetBranch) !== String(currentUser.code)) continue;
+
+                // فلترة البحث
+                if (searchTerm) {
+                    if (!(inv.manualInvoiceNo.toLowerCase().includes(searchTerm) || inv.customer.phone.toLowerCase().includes(searchTerm))) {
+                        continue;
+                    }
+                }
+
+                countSuspended++;
+                
+                // أزرار النسخ لكل صنف (الكود والاسم بشكل منفصل)
+                let itemsHtml = inv.items.map(i => `
+                    <div class="flex flex-col text-xs border-b pb-1 pt-1 text-gray-600 gap-1">
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-1 font-bold">
+                                ${i.code}
+                                <button type="button" onclick="window.copyText(this, '${i.code}')" class="text-gray-400 hover:text-blue-600"><i class="fa-regular fa-copy"></i></button>
+                            </div>
+                            <span class="font-black text-gray-950">${parseFloat(i.total).toFixed(2)}</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            - ${i.name} (×${i.qty})
+                            <button type="button" onclick="window.copyText(this, '${i.name}')" class="text-gray-400 hover:text-blue-600"><i class="fa-regular fa-copy"></i></button>
+                        </div>
+                    </div>
+                `).join('');
+
+                let buttonsHtml = '';
+                if (currentUser.role !== 'CUSTOMER_SERVICE') {
+                    buttonsHtml += `<button onclick="finalizeSuspendedInvoice('${inv.invoiceNo}')" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-lg transition"><i class="fa-solid fa-check"></i> حفظ كنهائي</button>`;
+                }
+                if (currentUser.role !== 'BRANCH') {
+                    buttonsHtml += `<button onclick="cancelInvoice('${inv.invoiceNo}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold py-2 rounded-lg transition"><i class="fa-solid fa-xmark"></i> إلغاء</button>`;
+                }
+                buttonsHtml += `<button onclick="printThermalReceipt('${inv.invoiceNo}')" class="bg-gray-800 hover:bg-gray-900 text-white text-xs font-bold py-2 rounded-lg transition col-span-full mt-1"><i class="fa-solid fa-print"></i> طباعة الريسيت</button>`;
+
+                // بناء الكارت مع أزرار نسخ لكافة بيانات العميل
+                container.innerHTML += `
+                    <div class="bg-white rounded-2xl shadow-sm border p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start border-b pb-2 mb-2">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-blue-600 font-black">رقم: ${inv.manualInvoiceNo}</span>
+                                        <button type="button" onclick="window.copyText(this, '${inv.manualInvoiceNo}')" class="text-gray-400 hover:text-blue-600"><i class="fa-regular fa-copy"></i></button>
+                                    </div>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <h4 class="font-bold text-gray-900 text-sm"><i class="fa-solid fa-user-tag text-gray-400"></i> ${inv.customer.name}</h4>
+                                        <button type="button" onclick="window.copyText(this, '${inv.customer.name}')" class="text-gray-400 hover:text-blue-600"><i class="fa-regular fa-copy"></i></button>
+                                    </div>
+                                    ${inv.customer.address !== '-' ? `
+                                    <div class="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                                        <i class="fa-solid fa-location-dot"></i> ${inv.customer.address}
+                                        <button type="button" onclick="window.copyText(this, '${inv.customer.address}')" class="text-gray-400 hover:text-blue-600"><i class="fa-regular fa-copy"></i></button>
+                                    </div>` : ''}
+                                    <div class="flex items-center gap-2 text-xs font-semibold text-gray-700 mt-1">
+                                        <i class="fa-solid fa-phone"></i> ${inv.customer.phone}
+                                        <button type="button" onclick="window.copyText(this, '${inv.customer.phone}')" class="text-gray-400 hover:text-green-600"><i class="fa-regular fa-copy"></i></button>
+                                    </div>
+                                </div>
+                                <div class="text-left flex flex-col gap-1 items-end">
+                                    <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${inv.invoiceType}</span>
+                                    <span class="bg-purple-100 text-purple-800 text-[10px] font-bold px-2 py-0.5 rounded-full">${inv.orderType}</span>
+                                    <span class="text-[10px] text-gray-500">${inv.dateString}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-yellow-50 p-2 rounded text-xs mb-2 flex justify-between items-start">
+                                <span class="font-bold text-yellow-800 break-all"><i class="fa-solid fa-note-sticky"></i> ملاحظات: ${inv.customer.notes}</span>
+                                <button type="button" onclick="window.copyText(this, '${inv.customer.notes}')" class="text-yellow-600 hover:text-yellow-900 shrink-0 mr-2"><i class="fa-regular fa-copy"></i></button>
+                            </div>
+
+                            <div class="space-y-1 mb-4 max-h-32 overflow-y-auto pr-1">
+                                ${itemsHtml}
+                            </div>
+                            <div class="flex justify-between items-center bg-gray-50 p-2 rounded-xl text-sm mb-3">
+                                <span class="font-bold text-gray-500 text-xs">إجمالي الفاتورة:</span>
+                                <span class="font-black text-blue-600">${parseFloat(inv.totalAmount).toFixed(2)} ج.م</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 pt-2 border-t">
+                            ${buttonsHtml}
+                        </div>
+                    </div>
+                `;
+            }
+
+            const badge = document.getElementById('suspended-count');
+            if (countSuspended > 0) { badge.innerText = countSuspended; badge.classList.remove('hidden'); } 
+            else { badge.classList.add('hidden'); }
+        };
+
         window.finalizeSuspendedInvoice = async function(id) {
             await update(ref(db, `invoices/${id}`), { status: 'SENT' });
-            alert('تم تأكيد الفاتورة ونقلها إلى التقارير النهائية بنجاح.');
+            alert('تم تأكيد الفاتورة ونقلها إلى التقارير بنجاح.');
         };
-
         window.cancelInvoice = async function(id) {
-            if(confirm('هل أنت متأكد تماماً من إلغاء وحذف هذه الفاتورة؟')) {
-                await remove(ref(db, `invoices/${id}`));
-            }
+            if(confirm('تأكيد إلغاء الفاتورة نهائياً؟')) await remove(ref(db, `invoices/${id}`));
         };
 
-        /* --------------------------------------------------------------------
-           طباعة الريسيت الحراري المخصص والمطابق للمواصفات العالمية (80mm)
-           -------------------------------------------------------------------- */
+        /* --- الطباعة --- */
         window.printThermalReceipt = async function(id) {
             const snap = await get(ref(db, `invoices/${id}`));
             if (!snap.exists()) return;
@@ -1010,22 +1228,25 @@
 
             receiptContainer.innerHTML = `
                 <div style="text-align: center; font-family: 'Cairo', sans-serif; line-height: 1.4;">
-                    <h2 style="margin: 0; font-size: 16px; font-weight: bold;">فاتورة مبيعات  </h2>
-                    <p style="margin: 2px 0; font-size: 11px; color:#555;">POS-PRO</p>
+                    <h2 style="margin: 0; font-size: 16px; font-weight: bold;">صيدليات Dr. Wells</h2>
+                    <p style="margin: 2px 0; font-size: 11px; color:#555;">فاتورة بيع</p>
                     <div style="border-top: 2px double black; margin: 6px 0;"></div>
                     
-                    <div style="text-align: right; font-size: 11px; space-y: 2px;">
-                        <div><b>رقم الفاتورة:</b> ${inv.invoiceNo}</div>
-                        <div><b>التاريخ:</b> ${inv.dateString}</div>
-                        <div><b>الفرع المسؤل:</b> ${inv.targetBranch}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div id="receipt-qrcode"></div>
+                        <div style="text-align: right; font-size: 11px; margin-right: 5px;">
+                            <div><b>رقم الفاتورة:</b> ${inv.manualInvoiceNo}</div>
+                            <div><b>نوع الطلب:</b> ${inv.orderType}</div>
+                            <div><b>التاريخ:</b> ${inv.dateString}</div>
+                        </div>
                     </div>
                     
                     <div style="border-top: 1px solid black; margin: 6px 0; font-weight: bold; text-align: right; font-size: 12px;">الأصناف والمبيعات:</div>
                     ${itemsRowsHtml}
                     
                     <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 900; margin-top: 8px; border-top: 1px solid black; padding-top: 4px;">
-                        <span>الإجمالي النهائي:</span>
-                        <span>${parseFloat(inv.totalAmount).toFixed(2)} ج.م</span>
+                        <span>الإجمالي:</span>
+                        <span>${parseFloat(inv.totalAmount).toFixed(2)} ج</span>
                     </div>
                     
                     <div style="border-top: 1px dashed black; margin: 8px 0;"></div>
@@ -1033,55 +1254,91 @@
                         <div><b>العميل:</b> ${inv.customer.name}</div>
                         <div><b>العنوان:</b> ${inv.customer.address}</div>
                         <div><b>التواصل:</b> ${inv.customer.phone}</div>
+                        ${inv.customer.notes !== '-' ? `<div><b>ملاحظات:</b> ${inv.customer.notes}</div>` : ''}
                     </div>
-                    <div style="margin-top: 12px; font-size: 10px; color: #666;">شكراً لتعاملكم معنا</div>
+                    <div style="margin-top: 12px; font-size: 10px; color: #666;">نتمنى لكم دوام الصحة والعافية</div>
                 </div>
             `;
 
-            window.print();
-            receiptContainer.classList.add('hidden');
+            // توليد الـ QR code للوكيشن إذا وُجد
+            const qrContainer = document.getElementById('receipt-qrcode');
+            if (inv.customer.locationLink) {
+                new QRCode(qrContainer, {
+                    text: inv.customer.locationLink,
+                    width: 60,
+                    height: 60,
+                });
+            }
+
+            setTimeout(() => {
+                window.print();
+                receiptContainer.classList.add('hidden');
+            }, 300); // مهلة صغيرة لتوليد الـ QR قبل الطباعة
         };
 
-
-        /* --------------------------------------------------------------------
-           خامساً: قسم لوحة بيانات التقارير المتقدمة الشاملة لفرز وحساب الإيرادات
-           -------------------------------------------------------------------- */
+        /* --- التقارير المطورة والفلترة --- */
         window.loadReportsData = async function() {
             const snap = await get(ref(db, 'invoices'));
-            const filterBranch = document.getElementById('report-branch-select').value;
-            const tbody = document.getElementById('reports-table-body');
-            tbody.innerHTML = '';
-
             if(!snap.exists()) return;
+            
             const invoices = snap.val();
+            const filterBranch = document.getElementById('report-branch-select').value;
+            reportDataCache = [];
 
             for (let id in invoices) {
                 const inv = invoices[id];
                 if (inv.status !== 'SENT') continue;
-
-                if (currentUser.role === 'BRANCH' && String(inv.targetBranch) !== String(currentUser.code)) {
-                    continue;
-                }
+                if (currentUser.role === 'BRANCH' && String(inv.targetBranch) !== String(currentUser.code)) continue;
+                if (currentUser.role !== 'BRANCH' && filterBranch !== 'ALL' && String(inv.targetBranch) !== String(filterBranch)) continue;
                 
-                if (currentUser.role !== 'BRANCH' && filterBranch !== 'ALL' && String(inv.targetBranch) !== String(filterBranch)) {
-                    continue;
-                }
-
-                tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="p-3 font-mono font-bold text-xs text-blue-600">${inv.invoiceNo}</td>
-                        <td class="p-3 text-xs text-gray-500">${inv.dateString}</td>
-                        <td class="p-3 font-semibold text-gray-700">${inv.targetBranch}</td>
-                        <td class="p-3 text-sm">${inv.customer.name}</td>
-                        <td class="p-3 text-center font-bold">${inv.totalPieces}</td>
-                        <td class="p-3 font-bold text-emerald-600">${parseFloat(inv.totalAmount).toFixed(2)}</td>
-                        <td class="p-3 text-center">
-                            <button onclick="printThermalReceipt('${inv.invoiceNo}')" class="bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded-lg font-bold transition"><i class="fa-solid fa-print"></i> طباعة ريسيت</button>
-                        </td>
-                    </tr>
-                `;
+                reportDataCache.push(inv);
             }
+            renderFilteredReports();
         };
+
+        function renderFilteredReports() {
+            const tbody = document.getElementById('reports-table-body');
+            tbody.innerHTML = '';
+
+            // جلب قيم الفلاتر
+            const fNo = document.querySelector('input[data-col="manualNo"]').value.toLowerCase();
+            const fType = document.querySelector('input[data-col="invType"]').value.toLowerCase();
+            const fBranch = document.querySelector('input[data-col="branch"]').value.toLowerCase();
+            const fCust = document.querySelector('input[data-col="cust"]').value.toLowerCase();
+            const fNotes = document.querySelector('input[data-col="notes"]').value.toLowerCase();
+            const fTotal = document.querySelector('input[data-col="total"]').value.toLowerCase();
+
+            reportDataCache.forEach(inv => {
+                if(
+                    (inv.manualInvoiceNo||'').toLowerCase().includes(fNo) &&
+                    (inv.invoiceType||'').toLowerCase().includes(fType) &&
+                    (inv.targetBranch||'').toLowerCase().includes(fBranch) &&
+                    (inv.customer.name||'').toLowerCase().includes(fCust) &&
+                    (inv.customer.notes||'').toLowerCase().includes(fNotes) &&
+                    String(inv.totalAmount).includes(fTotal)
+                ) {
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-gray-50 transition text-xs">
+                            <td class="p-2 font-mono font-bold text-blue-600">${inv.manualInvoiceNo}</td>
+                            <td class="p-2">${inv.invoiceType} <br> <span class="text-[10px] text-gray-400">${inv.orderType}</span></td>
+                            <td class="p-2 font-semibold text-gray-700">${inv.targetBranch}</td>
+                            <td class="p-2">${inv.customer.name}</td>
+                            <td class="p-2 text-gray-500 max-w-[120px] truncate" title="${inv.customer.notes}">${inv.customer.notes}</td>
+                            <td class="p-2 font-bold text-emerald-600">${parseFloat(inv.totalAmount).toFixed(2)}</td>
+                            <td class="p-2 text-center">
+                                <button onclick="printThermalReceipt('${inv.invoiceNo}')" class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-2 py-1 rounded font-bold"><i class="fa-solid fa-print"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+        }
+
+        // تفعيل الفلترة المباشرة عند الكتابة في مربعات نص التقرير
+        document.querySelectorAll('.filter-input').forEach(input => {
+            input.addEventListener('input', renderFilteredReports);
+        });
+
     </script>
 </body>
 </html>
