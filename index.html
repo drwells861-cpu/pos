@@ -1746,25 +1746,27 @@
                 </div>
             `;
 
-            const qrContainer = document.getElementById('receipt-qrcode');
-            
-            // تجهيز الرابط لصفحة الدليفري مع تمرير البيانات (يجب أن ترفع صفحة delivery.html على نفس موقعك)
-            // استبدل "https://yoursite.com" برابط موقعك الفعلي الذي سترفع عليه النظام
-            const deliveryPageUrl = window.location.origin + "https://drwells861-cpu.github.io/pos/delivery.html"; 
-            
-            const qrUrl = `${deliveryPageUrl}?inv=${encodeURIComponent(inv.manualInvoiceNo)}&name=${encodeURIComponent(inv.customer.name)}&phone=${encodeURIComponent(inv.customer.phone)}&address=${encodeURIComponent(inv.customer.address)}&loc=${encodeURIComponent(inv.customer.locationLink)}`;
+           
+            // 1. مسح أي محتوى قديم داخل حاوية الكيو أر
+const qrContainer = document.getElementById('receipt-qrcode');
+qrContainer.innerHTML = ""; 
 
-            // توليد الـ QR بالرابط الجديد (تعمل حتى لو لم يضع خريطة، لكي تظهر باقي البيانات للدليفري)
-            if (inv.customer.phone || inv.customer.locationLink) {
-                new QRCode(qrContainer, { text: qrUrl, width: 60, height: 60 });
-            }
+// 2. اختصار الرابط لتقليل كثافة البيانات (نستخدم حروف مختصرة للبراميترات)
+// بدلاً من name=... استخدم n=... وبدلاً من phone=... استخدم p=...
+const deliveryPageUrl = "https://drwells861-cpu.github.io/pos/delivery.html";
+const qrUrl = `${deliveryPageUrl}?inv=${inv.manualInvoiceNo}&n=${encodeURIComponent(inv.customer.name)}&p=${encodeURIComponent(inv.customer.phone)}&a=${encodeURIComponent(inv.customer.address)}&l=${encodeURIComponent(inv.customer.locationLink)}`;
 
-            setTimeout(() => {
-                window.print();
-                receiptContainer.classList.add('hidden');
-            }, 300);
-        };
-
+// 3. إنشاء الكود بإعدادات احترافية
+if (inv.customer.phone || inv.customer.locationLink) {
+    new QRCode(qrContainer, {
+        text: qrUrl,
+        width: 128,      // زيادة الحجم قليلاً لضمان الوضوح
+        height: 128,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H // هذا أهم جزء: مستوى تصحيح خطأ مرتفع جداً
+    });
+}
         /* --- شاشة التقارير الاحترافية (الأعمدة الإضافية + الحذف للآدمين + العرض الجميل) --- */
         window.loadReportsData = async function() {
             const snap = await get(ref(db, 'invoices'));
