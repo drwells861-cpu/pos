@@ -5,6 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>POS-PRO | Management System</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        slate: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        },
+                        indigo: {
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 15px rgba(79, 70, 229, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -13,8 +41,24 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #f3f4f6;
+            background-color: #f8fafc; /* خلفية ناعمة جداً */
         }
+        /* تحسين السكرول بار ليناسب الأنظمة الحديثة */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
         @media print {
             body * {
                 visibility: hidden;
@@ -38,143 +82,152 @@
         }
         .filter-input {
             width: 100%;
-            padding: 4px 8px;
+            padding: 6px 10px;
             font-size: 11px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            margin-top: 4px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-top: 6px;
             font-weight: normal;
+            transition: all 0.2s;
+        }
+        .filter-input:focus {
+            border-color: #6366f1;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>
-<body class="text-gray-800 antialiased">
+<body class="text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-900">
 
-    <!-- شاشة تسجيل الدخول -->
-    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-blue-900 to-indigo-950 p-4">
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8 transform transition-all duration-300 scale-100">
-            <div class="text-center mb-8">
-                <div class="inline-flex p-3 bg-blue-100 text-blue-600 rounded-full mb-3">
-                    <i class="fa-solid mt-0.5 fa-prescription-bottle-medical text-3xl"></i>
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-[conic-gradient(at_bottom_right,_var(--tw-gradient-stops))] from-slate-900 via-indigo-900 to-slate-900 p-4">
+        <div class="w-full max-w-md bg-white rounded-[2rem] shadow-2xl shadow-indigo-500/20 p-10 transform transition-all duration-500 hover:scale-[1.01]">
+            <div class="text-center mb-10">
+                <div class="inline-flex p-4 bg-indigo-50 text-indigo-600 rounded-2xl mb-4 shadow-inner">
+                    <i class="fa-solid fa-bolt text-3xl"></i>
                 </div>
-                <h2 class="text-2xl font-black text-gray-900"> POS - PRO </h2>
-                <p class="text-sm text-gray-500 mt-1">منظومة الإدارة الذكية المتكاملة</p>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight"> POS<span class="text-indigo-600">-</span>PRO </h2>
+                <p class="text-sm text-slate-500 mt-2 font-semibold">منظومة الإدارة الذكية المتكاملة</p>
             </div>
-            <form id="login-form" class="space-y-5">
+            <form id="login-form" class="space-y-6">
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">كود المستخدم / الفرع</label>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">كود المستخدم / الفرع</label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
+                        <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400">
                             <i class="fa-solid fa-user"></i>
                         </span>
-                        <input type="text" id="login-code" required class="w-full pl-3 pr-10 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none" placeholder="مثال: Admin أو كود الفرع">
+                        <input type="text" id="login-code" required class="w-full pl-4 pr-11 py-3 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none bg-slate-50 focus:bg-white font-medium" placeholder="مثال: Admin أو كود الفرع">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">كلمة المرور</label>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">كلمة المرور</label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
+                        <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400">
                             <i class="fa-solid fa-lock"></i>
                         </span>
-                        <input type="password" id="login-password" required class="w-full pl-3 pr-10 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none" placeholder="••••••••">
+                        <input type="password" id="login-password" required class="w-full pl-4 pr-11 py-3 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none bg-slate-50 focus:bg-white font-medium" placeholder="••••••••">
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition duration-200 shadow-lg shadow-blue-500/20">دخول آمن للمنظومة</button>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition-all duration-200 shadow-lg shadow-indigo-600/30 active:scale-[0.98] mt-4">تسجيل الدخول للنظام</button>
             </form>
         </div>
     </div>
 
-    <!-- مودال البحث المتقدم عن الأصناف -->
-    <div id="search-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 hidden no-print">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-6 m-4 flex flex-col h-[80vh]">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                    <i class="fa-solid fa-search text-blue-600"></i> بحث متقدم عن الأصناف (F1)
+    <div id="search-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden no-print transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-6 m-4 flex flex-col h-[80vh] border border-slate-100 transform scale-100 transition-transform">
+            <div class="flex justify-between items-center mb-5 border-b border-slate-100 pb-4">
+                <h3 class="text-xl font-black text-slate-900 flex items-center gap-3">
+                    <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600"><i class="fa-solid fa-search"></i></div>
+                    بحث متقدم عن الأصناف <span class="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-md font-bold">F1</span>
                 </h3>
-                <button onclick="closeSearchModal()" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <button onclick="closeSearchModal()" class="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-all"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <div class="mb-4">
-                <input type="text" id="modal-search-input" oninput="filterModalItems()" class="w-full px-4 py-3 border-2 border-blue-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-bold" placeholder="ابحث بالاسم أو الكود (بحث تقريبي)...">
+            <div class="mb-5 relative">
+                <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input type="text" id="modal-search-input" oninput="filterModalItems()" class="w-full pl-4 pr-11 py-3.5 border-2 border-indigo-100 rounded-xl outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 text-sm font-bold bg-slate-50 focus:bg-white transition-all" placeholder="ابحث بالاسم أو الكود (بحث تقريبي)...">
             </div>
-            <div class="flex-1 overflow-y-auto border rounded-xl mb-4">
+            <div class="flex-1 overflow-y-auto border border-slate-200 rounded-xl mb-5 custom-scrollbar">
                 <table class="w-full text-right border-collapse">
-                    <thead class="bg-gray-100 sticky top-0">
-                        <tr class="text-xs font-bold text-gray-600 border-b">
-                            <th class="p-3 w-10 text-center"><input type="checkbox" id="select-all-modal" onchange="toggleAllModalCheckboxes()"></th>
-                            <th class="p-3">كود الصنف</th>
-                            <th class="p-3">اسم الصنف</th>
-                            <th class="p-3">السعر</th>
+                    <thead class="bg-slate-50 sticky top-0 z-10 shadow-sm">
+                        <tr class="text-xs font-black text-slate-600 border-b border-slate-200 uppercase tracking-wider">
+                            <th class="p-4 w-10 text-center"><input type="checkbox" id="select-all-modal" onchange="toggleAllModalCheckboxes()" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"></th>
+                            <th class="p-4">كود الصنف</th>
+                            <th class="p-4">اسم الصنف</th>
+                            <th class="p-4">السعر</th>
                         </tr>
                     </thead>
-                    <tbody id="modal-items-tbody" class="text-sm divide-y"></tbody>
+                    <tbody id="modal-items-tbody" class="text-sm divide-y divide-slate-100"></tbody>
                 </table>
             </div>
-            <div class="flex justify-end gap-3 pt-2">
-                <button onclick="closeSearchModal()" class="px-6 py-2 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition">إلغاء</button>
-                <button onclick="addSelectedItemsFromModal()" class="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-md flex items-center gap-2">
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button onclick="closeSearchModal()" class="px-6 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold hover:bg-slate-200 transition-colors active:scale-95">إلغاء</button>
+                <button onclick="addSelectedItemsFromModal()" class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/30 flex items-center gap-2 active:scale-95">
                     <i class="fa-solid fa-check-double"></i> إضافة الأصناف المحددة
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- مودال عرض بيانات الفاتورة بالكامل (جميلة واحترافية) -->
-    <div id="invoice-detail-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 hidden no-print">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-6 m-4 flex flex-col max-h-[90vh]">
-            <div class="flex justify-between items-center border-b pb-3 mb-4">
-                <h3 class="text-xl font-black text-gray-900 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-info text-blue-600"></i> تفاصيل الفاتورة الشاملة
+    <div id="invoice-detail-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden no-print transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-6 m-4 flex flex-col max-h-[90vh] border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-5">
+                <h3 class="text-xl font-black text-slate-900 flex items-center gap-3">
+                    <div class="p-2 bg-blue-50 rounded-lg text-blue-600"><i class="fa-solid fa-file-invoice"></i></div>
+                    تفاصيل الفاتورة الشاملة
                 </h3>
-                <button onclick="closeInvoiceDetailModal()" class="text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark text-2xl"></i></button>
+                <button onclick="closeInvoiceDetailModal()" class="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-all"><i class="fa-solid fa-xmark text-2xl"></i></button>
             </div>
-            <div class="flex-1 overflow-y-auto space-y-6 text-sm" id="invoice-detail-content">
-                <!-- يتم تعبئتها ديناميكياً -->
-            </div>
-            <div class="flex justify-end gap-3 pt-4 border-t mt-4">
-                <button onclick="closeInvoiceDetailModal()" class="px-6 py-2 bg-gray-200 text-gray-800 rounded-xl font-bold hover:bg-gray-300 transition">إغلاق النافذة</button>
+            <div class="flex-1 overflow-y-auto space-y-6 text-sm custom-scrollbar pr-2" id="invoice-detail-content">
+                </div>
+            <div class="flex justify-end gap-3 pt-5 border-t border-slate-100 mt-2">
+                <button onclick="closeInvoiceDetailModal()" class="px-6 py-2.5 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition-colors active:scale-95 shadow-md">إغلاق النافذة</button>
             </div>
         </div>
     </div>
 
-    <!-- لوحة التحكم الرئيسية -->
     <div id="main-dashboard" class="hidden min-h-screen flex flex-col">
-        <header class="bg-white shadow-sm border-b border-gray-200 no-print">
+        <header class="bg-white shadow-sm border-b border-slate-200 no-print sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
                 <div class="flex items-center space-x-4 space-x-reverse">
-                    <span class="text-xl font-black text-blue-600 flex items-center gap-2">
-                        <i class="fa-solid fa-square-poll-horizontal"></i> POS - PRO | الذكي
+                    <span class="text-2xl font-black text-indigo-600 flex items-center gap-2 tracking-tight">
+                        <i class="fa-solid fa-bolt text-indigo-500"></i> POS<span class="text-slate-800">-PRO</span>
                     </span>
-                    <span id="user-badge" class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold"></span>
+                    <span id="user-badge" class="bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full text-xs font-bold shadow-sm"></span>
                 </div>
                 <div class="flex items-center space-x-3 space-x-reverse">
-                    <button onclick="logout()" class="text-sm font-medium text-red-600 hover:bg-red-50 px-3 py-2 rounded-xl transition flex items-center gap-1">
-                        <i class="fa-solid fa-arrow-right-from-bracket"></i> خروج
+                    <button onclick="logout()" class="text-sm font-bold text-red-600 hover:bg-red-50 px-4 py-2 rounded-xl transition-all flex items-center gap-2 active:scale-95 border border-transparent hover:border-red-100">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل خروج
                     </button>
                 </div>
             </div>
         </header>
 
-        <nav class="bg-white border-b border-gray-200 no-print shadow-inner">
-            <div class="max-w-7xl mx-auto px-4 overflow-x-auto flex space-x-2 space-x-reverse py-3">
-                <button onclick="switchTab('invoice-tab')" id="btn-invoice-tab" class="tab-btn px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 bg-blue-600 text-white">
-                    <i class="fa-solid fa-file-invoice-dollar"></i> فاتورة مبيعات
+        <nav class="bg-white border-b border-slate-200 no-print">
+            <div class="max-w-7xl mx-auto px-4 overflow-x-auto flex space-x-2 space-x-reverse py-3 custom-scrollbar">
+                <button onclick="switchTab('invoice-tab')" id="btn-invoice-tab" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 bg-indigo-600 text-white shadow-md shadow-indigo-500/20 active:scale-95 whitespace-nowrap">
+                    <i class="fa-solid fa-cart-shopping"></i> المبيعات
                 </button>
-                <button onclick="switchTab('items-tab')" id="btn-items-tab" class="tab-btn px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 bg-gray-100 text-gray-600 hover:bg-gray-200">
-                    <i class="fa-solid fa-box"></i> الأصناف
+                <button onclick="switchTab('items-tab')" id="btn-items-tab" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 active:scale-95 whitespace-nowrap">
+                    <i class="fa-solid fa-box-open"></i> الأصناف
                 </button>
-                <button onclick="switchTab('branches-tab')" id="btn-branches-tab" class="tab-btn px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 bg-gray-100 text-gray-600 hover:bg-gray-200">
-                    <i class="fa-solid fa-store"></i> الفروع
+                <button onclick="switchTab('branches-tab')" id="btn-branches-tab" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 active:scale-95 whitespace-nowrap">
+                    <i class="fa-solid fa-code-branch"></i> الفروع
                 </button>
-                <button onclick="switchTab('employees-tab')" id="btn-employees-tab" class="tab-btn px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 bg-gray-100 text-gray-600 hover:bg-gray-200 hidden">
-                    <i class="fa-solid fa-users-gear"></i> الموظفين (Admin)
+                <button onclick="switchTab('employees-tab')" id="btn-employees-tab" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 active:scale-95 whitespace-nowrap hidden">
+                    <i class="fa-solid fa-users-gear"></i> الموظفين
                 </button>
-                <button onclick="switchTab('settings-tab')" id="btn-settings-tab" class="tab-btn px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 bg-gray-100 text-gray-600 hover:bg-gray-200">
-                    <i class="fa-solid fa-cogs"></i> إعدادات فاتورة البيع
+                <button onclick="switchTab('settings-tab')" id="btn-settings-tab" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 active:scale-95 whitespace-nowrap">
+                    <i class="fa-solid fa-sliders"></i> الإعدادات
                 </button>
-                <button onclick="switchTab('suspended-tab')" id="btn-suspended-tab" class="tab-btn px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 bg-gray-100 text-gray-600 hover:bg-gray-200 relative">
-                    <i class="fa-solid fa-clock"></i> الفواتير المعلقة
-                    <span id="suspended-count" class="hidden absolute -top-1 -left-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center font-bold">0</span>
+                <button onclick="switchTab('suspended-tab')" id="btn-suspended-tab" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 active:scale-95 whitespace-nowrap relative">
+                    <i class="fa-solid fa-clock-rotate-left"></i> فواتير معلقة
+                    <span id="suspended-count" class="hidden absolute -top-1.5 -left-1.5 bg-red-500 text-white rounded-full min-w-[22px] h-[22px] px-1 text-[11px] flex items-center justify-center font-black shadow-sm ring-2 ring-white animate-bounce">0</span>
                 </button>
-                <button onclick="switchTab('reports-tab')" id="btn-reports-tab" class="tab-btn px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 bg-gray-100 text-gray-600 hover:bg-gray-200">
+                <button onclick="switchTab('reports-tab')" id="btn-reports-tab" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 active:scale-95 whitespace-nowrap">
                     <i class="fa-solid fa-chart-line"></i> التقارير
                 </button>
             </div>
@@ -182,481 +235,516 @@
 
         <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 no-print">
             
-            <!-- تبويب الأصناف -->
             <section id="items-tab" class="tab-content space-y-6 hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white rounded-2xl shadow-sm border p-6 h-fit">
-                        <h3 id="item-form-title" class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-plus-circle text-blue-500"></i> إضافة صنف جديد
+                    <div class="bg-white rounded-2xl shadow-soft border border-slate-200 p-6 h-fit transition-all hover:shadow-md">
+                        <h3 id="item-form-title" class="text-lg font-black text-slate-900 mb-5 flex items-center gap-2">
+                            <i class="fa-solid fa-plus-circle text-indigo-500"></i> تسجيل صنف جديد
                         </h3>
                         <form id="item-form" class="space-y-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">كود الصنف</label>
-                                <input type="text" id="item-code" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">كود الصنف</label>
+                                <input type="text" id="item-code" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white font-mono transition-colors">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">اسم الصنف</label>
-                                <input type="text" id="item-name" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">اسم الصنف</label>
+                                <input type="text" id="item-name" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white transition-colors">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">السعر</label>
-                                <input type="number" step="0.01" id="item-price" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">السعر</label>
+                                <input type="number" step="0.01" id="item-price" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white transition-colors font-bold text-indigo-600">
                             </div>
-                            <div class="flex gap-2 pt-2">
-                                <button type="submit" class="flex-1 bg-blue-600 text-white font-semibold py-2 rounded-xl text-sm hover:bg-blue-700">حفظ الصنف</button>
-                                <button type="button" onclick="resetItemForm()" class="bg-gray-100 text-gray-600 py-2 px-3 rounded-xl text-sm hover:bg-gray-200">إلغاء</button>
+                            <div class="flex gap-2 pt-3">
+                                <button type="submit" class="flex-1 bg-indigo-600 text-white font-bold py-2.5 rounded-xl text-sm hover:bg-indigo-700 shadow-md shadow-indigo-500/20 active:scale-95 transition-all">حفظ البيانات</button>
+                                <button type="button" onclick="resetItemForm()" class="bg-slate-100 text-slate-600 py-2.5 px-4 rounded-xl text-sm font-bold hover:bg-slate-200 active:scale-95 transition-all">إلغاء</button>
                             </div>
                         </form>
                     </div>
 
-                    <div class="bg-white rounded-2xl shadow-sm border p-6 lg:col-span-2 flex flex-col justify-between">
+                    <div class="bg-white rounded-2xl shadow-soft border border-slate-200 p-6 lg:col-span-2 flex flex-col justify-between transition-all hover:shadow-md">
                         <div>
-                            <h3 class="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                                <i class="fa-solid fa-file-excel text-green-600"></i> استيراد وتحديث من شيت Excel
+                            <h3 class="text-lg font-black text-slate-900 mb-2 flex items-center gap-2">
+                                <i class="fa-solid fa-file-excel text-emerald-500"></i> استيراد ذكي من Excel
                             </h3>
-                            <p class="text-xs text-gray-500 mb-4">ارفع ملف Excel يحتوي على الأعمدة التالية بالترتيب أو العناوين: (الكود، الاسم، السعر).</p>
-                            <div class="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center hover:bg-gray-50 transition relative">
-                                <input type="file" id="excel-file" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
-                                <i class="fa-solid fa-cloud-arrow-up text-4xl text-gray-400 mb-2"></i>
-                                <p class="text-sm font-semibold text-gray-600">اضغط هنا أو اسحب ملف الاكسيل لرفعه</p>
+                            <p class="text-xs font-semibold text-slate-500 mb-5">تأكد من ترتيب الأعمدة في الملف: (الكود، الاسم، السعر).</p>
+                            <div class="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center hover:bg-slate-50 hover:border-indigo-400 transition-all relative cursor-pointer group">
+                                <input type="file" id="excel-file" accept=".xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                                <div class="group-hover:-translate-y-1 transition-transform duration-300">
+                                    <i class="fa-solid fa-cloud-arrow-up text-5xl text-slate-300 group-hover:text-indigo-400 mb-3"></i>
+                                    <p class="text-sm font-bold text-slate-600 group-hover:text-indigo-600">اضغط أو اسحب ملف الـ Excel هنا للرفع المباشر</p>
+                                </div>
                             </div>
                         </div>
-                        <div id="excel-status" class="mt-4 text-xs font-semibold text-green-600 hidden"></div>
+                        <div id="excel-status" class="mt-4 p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-sm font-bold text-emerald-700 hidden text-center flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-circle-check"></i> <span></span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
-                    <div class="p-4 border-b bg-gray-50 flex items-center justify-between">
-                        <h3 class="font-bold text-gray-900">قائمة الأصناف المسجلة (20 صنف في الصفحة)</h3>
-                        <div class="relative w-64">
-                            <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 text-xs">
+                <div class="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <h3 class="font-black text-slate-900 text-lg">سجل الأصناف <span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-lg ml-2">20 صنف بالصفحة</span></h3>
+                        <div class="relative w-full sm:w-72">
+                            <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 text-sm">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                             </span>
-                            <input type="text" id="search-items" oninput="window.currentItemsPage = 1; renderItemsTable()" class="w-full pl-3 pr-8 py-1.5 border text-xs rounded-xl outline-none" placeholder="بحث باسم أو كود الصنف...">
+                            <input type="text" id="search-items" oninput="window.currentItemsPage = 1; renderItemsTable()" class="w-full pl-4 pr-10 py-2 border border-slate-200 text-sm rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm transition-all font-medium" placeholder="بحث سريع باسم أو كود الصنف...">
                         </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-right border-collapse">
                             <thead>
-                                <tr class="bg-gray-100 text-xs font-bold text-gray-600 border-b">
-                                    <th class="p-3">كود الصنف</th>
-                                    <th class="p-3">اسم الصنف</th>
-                                    <th class="p-3">السعر الافتراضي</th>
-                                    <th class="p-3 text-center">الإجراءات</th>
+                                <tr class="bg-slate-50 text-xs font-black text-slate-500 border-b border-slate-200 uppercase tracking-wider">
+                                    <th class="p-4">كود الصنف</th>
+                                    <th class="p-4">اسم الصنف</th>
+                                    <th class="p-4">السعر الافتراضي</th>
+                                    <th class="p-4 text-center">الإجراءات</th>
                                 </tr>
                             </thead>
-                            <tbody id="items-table-body" class="text-sm divide-y"></tbody>
+                            <tbody id="items-table-body" class="text-sm divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
-                    <div class="p-3 border-t bg-white flex items-center justify-between">
-                        <span id="items-page-info" class="text-xs font-bold text-gray-500">صفحة 1 من 1</span>
+                    <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                        <span id="items-page-info" class="text-xs font-bold text-slate-500 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">صفحة 1 من 1</span>
                         <div class="flex gap-2">
-                            <button type="button" onclick="window.prevItemPage()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-1.5 rounded-lg text-xs font-bold transition">السابق</button>
-                            <button type="button" onclick="window.nextItemPage()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-sm">التالي</button>
+                            <button type="button" onclick="window.prevItemPage()" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-5 py-2 rounded-xl text-xs font-bold transition-colors shadow-sm active:scale-95">السابق</button>
+                            <button type="button" onclick="window.nextItemPage()" class="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2 rounded-xl text-xs font-bold transition-colors shadow-sm shadow-slate-800/20 active:scale-95">التالي</button>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- تبويب الفروع -->
             <section id="branches-tab" class="tab-content space-y-6 hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white rounded-2xl shadow-sm border p-6 h-fit">
-                        <h3 id="branch-form-title" class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-code-branch text-indigo-500"></i> إضافة فرع جديد
+                    <div class="bg-white rounded-2xl shadow-soft border border-slate-200 p-6 h-fit hover:shadow-md transition-all">
+                        <h3 id="branch-form-title" class="text-lg font-black text-slate-900 mb-5 flex items-center gap-2">
+                            <i class="fa-solid fa-code-branch text-blue-500"></i> إعدادات الفروع
                         </h3>
                         <form id="branch-form" class="space-y-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">كود الفرع</label>
-                                <input type="text" id="branch-code" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">كود الفرع</label>
+                                <input type="text" id="branch-code" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 focus:bg-white font-mono">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">اسم الفرع / الإدارة</label>
-                                <input type="text" id="branch-name" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">اسم الفرع / الإدارة</label>
+                                <input type="text" id="branch-name" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 focus:bg-white">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">كلمة المرور للفرع</label>
-                                <input type="password" id="branch-password" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">كلمة المرور للفرع</label>
+                                <input type="password" id="branch-password" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 focus:bg-white">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">نوع الكيان</label>
-                                <select id="branch-type" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option value="BRANCH">فرع تشغيلي (بيع واستلام)</option>
-                                    <option value="CUSTOMER_SERVICE">خدمة عملاء (إنشاء وتوجيه)</option>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">طبيعة الكيان</label>
+                                <select id="branch-type" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 focus:bg-white font-bold">
+                                    <option value="BRANCH">فرع تشغيلي (بيع وتجهيز)</option>
+                                    <option value="CUSTOMER_SERVICE">خدمة عملاء (توجيه فقط)</option>
                                 </select>
                             </div>
-                            <div class="flex gap-2 pt-2">
-                                <button type="submit" class="flex-1 bg-indigo-600 text-white font-semibold py-2 rounded-xl text-sm hover:bg-indigo-700">حفظ</button>
-                                <button type="button" onclick="resetBranchForm()" class="bg-gray-100 text-gray-600 py-2 px-3 rounded-xl text-sm hover:bg-gray-200">إلغاء</button>
+                            <div class="flex gap-2 pt-3">
+                                <button type="submit" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded-xl text-sm hover:bg-blue-700 shadow-md shadow-blue-500/20 active:scale-95 transition-all">حفظ الفرع</button>
+                                <button type="button" onclick="resetBranchForm()" class="bg-slate-100 text-slate-600 py-2.5 px-4 rounded-xl text-sm font-bold hover:bg-slate-200 active:scale-95 transition-all">إلغاء</button>
                             </div>
                         </form>
                     </div>
 
-                    <div class="bg-white rounded-2xl shadow-sm border overflow-hidden lg:col-span-2">
-                        <div class="p-4 border-b bg-gray-50">
-                            <h3 class="font-bold text-gray-900">الهيكل التنظيمي للفروع والخدمات</h3>
+                    <div class="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden lg:col-span-2">
+                        <div class="p-5 border-b border-slate-100 bg-slate-50/50">
+                            <h3 class="font-black text-slate-900 text-lg">الهيكل التنظيمي المسجل</h3>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-right border-collapse">
                                 <thead>
-                                    <tr class="bg-gray-100 text-xs font-bold text-gray-600 border-b">
-                                        <th class="p-3">كود الفرع</th>
-                                        <th class="p-3">اسم الفرع</th>
-                                        <th class="p-3">النوع</th>
-                                        <th class="p-3 text-center">الإجراءات</th>
+                                    <tr class="bg-slate-50 text-xs font-black text-slate-500 border-b border-slate-200 uppercase">
+                                        <th class="p-4">الكود</th>
+                                        <th class="p-4">الاسم</th>
+                                        <th class="p-4">التصنيف</th>
+                                        <th class="p-4 text-center">تعديل</th>
                                     </tr>
                                 </thead>
-                                <tbody id="branches-table-body" class="text-sm divide-y"></tbody>
+                                <tbody id="branches-table-body" class="text-sm divide-y divide-slate-100"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- تبويب الموظفين (جديد وخاص للآدمين فقط) -->
             <section id="employees-tab" class="tab-content space-y-6 hidden">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="bg-white rounded-2xl shadow-sm border p-6 h-fit">
-                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-user-plus text-green-600"></i> إضافة موظف جديد
+                    <div class="bg-white rounded-2xl shadow-soft border border-slate-200 p-6 h-fit hover:shadow-md transition-all">
+                        <h3 class="text-lg font-black text-slate-900 mb-5 flex items-center gap-2">
+                            <i class="fa-solid fa-user-plus text-emerald-500"></i> بيانات الموظفين
                         </h3>
                         <form id="employee-form" class="space-y-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">كود الموظف *</label>
-                                <input type="text" id="emp-code" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-green-500 font-bold">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">كود الموظف *</label>
+                                <input type="text" id="emp-code" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-mono font-bold bg-slate-50 focus:bg-white">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">اسم الموظف *</label>
-                                <input type="text" id="emp-name" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-green-500">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">اسم الموظف *</label>
+                                <input type="text" id="emp-name" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 focus:bg-white">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">الكيان الوظيفي *</label>
-                                <select id="emp-entity" required onchange="toggleEmpBranchSelect()" class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-green-500">
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">القسم *</label>
+                                <select id="emp-entity" required onchange="toggleEmpBranchSelect()" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 focus:bg-white font-bold">
                                     <option value="كول سنتر">كول سنتر</option>
                                     <option value="فرع">فرع</option>
                                 </select>
                             </div>
                             <div id="emp-branch-container" class="hidden">
-                                <label class="block text-xs font-bold text-gray-700 mb-1">الفرع التابع له *</label>
-                                <select id="emp-branch" class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-green-500"></select>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">الفرع الملحق *</label>
+                                <select id="emp-branch" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 focus:bg-white font-bold"></select>
                             </div>
-                            <button type="submit" class="w-full bg-green-600 text-white font-semibold py-2 rounded-xl text-sm hover:bg-green-700 transition">حفظ بيانات الموظف</button>
+                            <button type="submit" class="w-full mt-2 bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm hover:bg-emerald-700 transition-all shadow-md shadow-emerald-500/20 active:scale-95">حفظ السجل</button>
                         </form>
                     </div>
-                    <div class="bg-white rounded-2xl shadow-sm border overflow-hidden lg:col-span-2">
-                        <div class="p-4 border-b bg-gray-50">
-                            <h3 class="font-bold text-gray-900">قائمة شؤون الموظفين المسجلين</h3>
+                    <div class="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden lg:col-span-2">
+                        <div class="p-5 border-b border-slate-100 bg-slate-50/50">
+                            <h3 class="font-black text-slate-900 text-lg">شؤون العاملين بالمؤسسة</h3>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-right border-collapse">
                                 <thead>
-                                    <tr class="bg-gray-100 text-xs font-bold text-gray-600 border-b">
-                                        <th class="p-3">كود الموظف</th>
-                                        <th class="p-3">الاسم الكامل</th>
-                                        <th class="p-3">الكيان</th>
-                                        <th class="p-3">الفرع الملحق</th>
-                                        <th class="p-3 text-center">إجراءات</th>
+                                    <tr class="bg-slate-50 text-xs font-black text-slate-500 border-b border-slate-200 uppercase">
+                                        <th class="p-4">الكود</th>
+                                        <th class="p-4">الاسم الكامل</th>
+                                        <th class="p-4">القسم</th>
+                                        <th class="p-4">مكان العمل</th>
+                                        <th class="p-4 text-center">إزالة</th>
                                     </tr>
                                 </thead>
-                                <tbody id="employees-table-body" class="text-sm divide-y"></tbody>
+                                <tbody id="employees-table-body" class="text-sm divide-y divide-slate-100"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- تبويب الإعدادات -->
             <section id="settings-tab" class="tab-content space-y-6 hidden">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white rounded-2xl shadow-sm border p-6 h-fit">
-                        <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2">
-                            <i class="fa-solid fa-tags text-blue-500"></i> إعدادات أنواع الأوردرات
+                    <div class="bg-white rounded-2xl shadow-soft border border-slate-200 p-6 h-fit hover:shadow-md transition-all">
+                        <h3 class="text-lg font-black text-slate-900 mb-5 border-b border-slate-100 pb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-tags text-indigo-500"></i> أنواع الأوردرات
                         </h3>
                         <form id="order-type-form" class="space-y-4 mb-6">
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-700 mb-1">كود النوع</label>
-                                    <input type="text" id="order-type-code" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">الكود</label>
+                                    <input type="text" id="order-type-code" required class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-700 mb-1">اسم النوع</label>
-                                    <input type="text" id="order-type-name" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">الوصف</label>
+                                    <input type="text" id="order-type-name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50">
                                 </div>
                             </div>
                             <div class="flex gap-2">
-                                <button type="submit" class="flex-1 bg-blue-600 text-white font-semibold py-2 rounded-xl text-sm hover:bg-blue-700">حفظ</button>
-                                <button type="button" onclick="resetSettingForm('order')" class="bg-gray-100 text-gray-600 py-2 px-3 rounded-xl text-sm hover:bg-gray-200">إلغاء</button>
+                                <button type="submit" class="flex-1 bg-slate-800 text-white font-bold py-2 rounded-lg text-sm hover:bg-slate-900 transition-colors active:scale-95">حفظ</button>
+                                <button type="button" onclick="resetSettingForm('order')" class="bg-slate-100 text-slate-600 py-2 px-3 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors">تفريغ</button>
                             </div>
                         </form>
-                        <div class="overflow-x-auto border rounded-xl">
+                        <div class="overflow-x-auto border border-slate-200 rounded-xl max-h-48 custom-scrollbar">
                             <table class="w-full text-right border-collapse text-sm">
-                                <thead class="bg-gray-50 border-b">
-                                    <tr>
-                                        <th class="p-2">الكود</th><th class="p-2">الاسم</th><th class="p-2 text-center">إجراء</th>
-                                    </tr>
+                                <thead class="bg-slate-50 border-b border-slate-200 sticky top-0">
+                                    <tr class="text-xs font-bold text-slate-600"><th class="p-2">الكود</th><th class="p-2">الوصف</th><th class="p-2 text-center">#</th></tr>
                                 </thead>
-                                <tbody id="order-types-body" class="divide-y"></tbody>
+                                <tbody id="order-types-body" class="divide-y divide-slate-100"></tbody>
                             </table>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-2xl shadow-sm border p-6 h-fit">
-                        <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2">
-                            <i class="fa-solid fa-file-invoice text-indigo-500"></i> إعدادات أنواع الفواتير
+                    <div class="bg-white rounded-2xl shadow-soft border border-slate-200 p-6 h-fit hover:shadow-md transition-all">
+                        <h3 class="text-lg font-black text-slate-900 mb-5 border-b border-slate-100 pb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-file-invoice text-blue-500"></i> أنواع الفواتير
                         </h3>
                         <form id="invoice-type-form" class="space-y-4 mb-6">
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-700 mb-1">كود النوع</label>
-                                    <input type="text" id="invoice-type-code" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">الكود</label>
+                                    <input type="text" id="invoice-type-code" required class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-700 mb-1">اسم النوع</label>
-                                    <input type="text" id="invoice-type-name" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">الوصف</label>
+                                    <input type="text" id="invoice-type-name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50">
                                 </div>
                             </div>
                             <div class="flex gap-2">
-                                <button type="submit" class="flex-1 bg-indigo-600 text-white font-semibold py-2 rounded-xl text-sm hover:bg-indigo-700">حفظ</button>
-                                <button type="button" onclick="resetSettingForm('invoice')" class="bg-gray-100 text-gray-600 py-2 px-3 rounded-xl text-sm hover:bg-gray-200">إلغاء</button>
+                                <button type="submit" class="flex-1 bg-slate-800 text-white font-bold py-2 rounded-lg text-sm hover:bg-slate-900 transition-colors active:scale-95">حفظ</button>
+                                <button type="button" onclick="resetSettingForm('invoice')" class="bg-slate-100 text-slate-600 py-2 px-3 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors">تفريغ</button>
                             </div>
                         </form>
-                        <div class="overflow-x-auto border rounded-xl">
+                        <div class="overflow-x-auto border border-slate-200 rounded-xl max-h-48 custom-scrollbar">
                             <table class="w-full text-right border-collapse text-sm">
-                                <thead class="bg-gray-50 border-b">
-                                    <tr>
-                                        <th class="p-2">الكود</th><th class="p-2">الاسم</th><th class="p-2 text-center">إجراء</th>
-                                    </tr>
+                                <thead class="bg-slate-50 border-b border-slate-200 sticky top-0">
+                                    <tr class="text-xs font-bold text-slate-600"><th class="p-2">الكود</th><th class="p-2">الوصف</th><th class="p-2 text-center">#</th></tr>
                                 </thead>
-                                <tbody id="invoice-types-body" class="divide-y"></tbody>
+                                <tbody id="invoice-types-body" class="divide-y divide-slate-100"></tbody>
                             </table>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-2xl shadow-sm border p-6 h-fit">
-                        <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2">
-                            <i class="fa-solid fa-money-bill-wave text-emerald-500"></i> إعدادات أنواع التحصيل
+                    <div class="bg-white rounded-2xl shadow-soft border border-slate-200 p-6 h-fit hover:shadow-md transition-all">
+                        <h3 class="text-lg font-black text-slate-900 mb-5 border-b border-slate-100 pb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-money-bill-wave text-emerald-500"></i> طرق الدفع
                         </h3>
                         <form id="payment-type-form" class="space-y-4 mb-6">
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-700 mb-1">كود التحصيل</label>
-                                    <input type="text" id="payment-type-code" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">الكود</label>
+                                    <input type="text" id="payment-type-code" required class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-700 mb-1">طريقة التحصيل</label>
-                                    <input type="text" id="payment-type-name" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">الوصف</label>
+                                    <input type="text" id="payment-type-name" required class="w-full px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50">
                                 </div>
                             </div>
                             <div class="flex gap-2">
-                                <button type="submit" class="flex-1 bg-emerald-600 text-white font-semibold py-2 rounded-xl text-sm hover:bg-emerald-700">حفظ</button>
-                                <button type="button" onclick="resetSettingForm('payment')" class="bg-gray-100 text-gray-600 py-2 px-3 rounded-xl text-sm hover:bg-gray-200">إلغاء</button>
+                                <button type="submit" class="flex-1 bg-slate-800 text-white font-bold py-2 rounded-lg text-sm hover:bg-slate-900 transition-colors active:scale-95">حفظ</button>
+                                <button type="button" onclick="resetSettingForm('payment')" class="bg-slate-100 text-slate-600 py-2 px-3 rounded-lg text-sm font-bold hover:bg-slate-200 transition-colors">تفريغ</button>
                             </div>
                         </form>
-                        <div class="overflow-x-auto border rounded-xl">
+                        <div class="overflow-x-auto border border-slate-200 rounded-xl max-h-48 custom-scrollbar">
                             <table class="w-full text-right border-collapse text-sm">
-                                <thead class="bg-gray-50 border-b">
-                                    <tr>
-                                        <th class="p-2">الكود</th><th class="p-2">الاسم</th><th class="p-2 text-center">إجراء</th>
-                                    </tr>
+                                <thead class="bg-slate-50 border-b border-slate-200 sticky top-0">
+                                    <tr class="text-xs font-bold text-slate-600"><th class="p-2">الكود</th><th class="p-2">الوصف</th><th class="p-2 text-center">#</th></tr>
                                 </thead>
-                                <tbody id="payment-types-body" class="divide-y"></tbody>
+                                <tbody id="payment-types-body" class="divide-y divide-slate-100"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- تبويب فاتورة مبيعات -->
             <section id="invoice-tab" class="tab-content space-y-6 hidden">
-                <div class="bg-white rounded-2xl shadow-sm border p-6 relative">
-                    <button id="btn-cancel-edit" onclick="cancelEditFlow()" class="absolute left-6 top-6 bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold py-1.5 px-4 rounded-lg hidden transition">
-                        <i class="fa-solid fa-xmark"></i> إلغاء التعديل
+                <div class="bg-white rounded-2xl shadow-soft border border-slate-200 p-6 sm:p-8 relative">
+                    <button id="btn-cancel-edit" onclick="cancelEditFlow()" class="absolute left-6 top-6 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold py-2 px-4 rounded-xl hidden transition-colors shadow-sm border border-red-100 flex items-center gap-2 active:scale-95 z-10">
+                        <i class="fa-solid fa-xmark"></i> التراجع عن التعديل
                     </button>
-                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2 border-b pb-2">
-                        <i class="fa-solid fa-file-invoice text-blue-600"></i> بيانات وتوجيه الفاتورة 
+                    
+                    <h3 class="text-xl font-black text-slate-900 mb-6 flex items-center gap-3 border-b border-slate-100 pb-4">
+                        <div class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl"><i class="fa-solid fa-cart-arrow-down"></i></div>
+                        توجيه وبيانات الطلب الرئيسي
                     </h3>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 pb-4 border-b">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-5 mb-6 pb-6 border-b border-slate-100">
                         <div id="target-branch-container">
-                            <label class="block text-xs font-bold text-red-600 mb-1">الفرع الموجه له *</label>
-                            <select id="invoice-target-branch" class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 font-semibold text-blue-700"></select>
+                            <label class="block text-xs font-black text-slate-800 mb-2">فرع التنفيذ <span class="text-red-500">*</span></label>
+                            <select id="invoice-target-branch" class="w-full px-4 py-2.5 border-2 border-indigo-100 rounded-xl outline-none focus:ring-0 focus:border-indigo-500 bg-indigo-50/50 font-bold text-indigo-900 cursor-pointer transition-colors"></select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-red-600 mb-1">نوع الفاتورة *</label>
-                            <select id="inv-type-select" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 font-semibold"></select>
+                            <label class="block text-xs font-bold text-slate-700 mb-2">فئة الفاتورة <span class="text-red-500">*</span></label>
+                            <select id="inv-type-select" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 font-bold text-slate-800 cursor-pointer"></select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-red-600 mb-1">نوع الأوردر *</label>
-                            <select id="ord-type-select" required class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 font-semibold"></select>
+                            <label class="block text-xs font-bold text-slate-700 mb-2">نوع الأوردر <span class="text-red-500">*</span></label>
+                            <select id="ord-type-select" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 font-bold text-slate-800 cursor-pointer"></select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-emerald-600 mb-1">نوع التحصيل *</label>
-                            <select id="pay-type-select" required class="w-full px-3 py-2 border border-emerald-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50 font-bold"></select>
+                            <label class="block text-xs font-bold text-slate-700 mb-2">طريقة الدفع <span class="text-red-500">*</span></label>
+                            <select id="pay-type-select" required class="w-full px-4 py-2.5 border border-emerald-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 bg-emerald-50 font-bold text-emerald-800 cursor-pointer"></select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-red-600 mb-1">رقم الفاتورة (يدوي) *</label>
-                            <input type="text" id="inv-manual-no" required class="w-full px-3 py-2 border border-red-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-bold" placeholder="أدخل رقم الفاتورة">
+                            <label class="block text-xs font-bold text-slate-700 mb-2">رقم الفاتورة <span class="text-red-500">*</span></label>
+                            <input type="text" id="inv-manual-no" required class="w-full px-4 py-2.5 border border-red-200 rounded-xl outline-none focus:ring-2 focus:ring-red-500 font-mono font-black text-center text-red-600 bg-red-50 placeholder-red-300" placeholder="00000">
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-5">
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">اسم العميل</label>
-                            <input type="text" id="cust-name" class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="الاسم الكامل">
+                            <label class="block text-xs font-bold text-slate-700 mb-2">اسم العميل</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400"><i class="fa-solid fa-user-tag text-xs"></i></span>
+                                <input type="text" id="cust-name" class="w-full pl-3 pr-9 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-semibold text-sm" placeholder="الاسم ثلاثي">
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">رقم التواصل</label>
-                            <input type="text" id="cust-phone" class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="رقم الهاتف">
+                            <label class="block text-xs font-bold text-slate-700 mb-2">رقم الموبايل</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400"><i class="fa-solid fa-phone text-xs"></i></span>
+                                <input type="text" id="cust-phone" class="w-full pl-3 pr-9 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white font-mono font-bold text-sm" placeholder="01...">
+                            </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-2">العنوان التفصيلي</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400"><i class="fa-solid fa-map-location-dot text-xs"></i></span>
+                                <input type="text" id="cust-address" class="w-full pl-3 pr-9 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-sm" placeholder="المنطقة، الشارع، العمارة، الدور...">
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">العنوان</label>
-                            <input type="text" id="cust-address" class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="تفاصيل العنوان">
+                            <label class="block text-xs font-bold text-slate-700 mb-2">Google Maps</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-blue-500"><i class="fa-solid fa-location-crosshairs text-xs"></i></span>
+                                <input type="url" id="cust-location" class="w-full pl-3 pr-9 py-2.5 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-sm" placeholder="رابط الموقع">
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">لينك الموقع</label>
-                            <input type="url" id="cust-location" class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="رابط Google Maps">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">الملاحظات</label>
-                            <input type="text" id="cust-notes" class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="ملاحظات إضافية">
+                        <div class="md:col-span-5">
+                            <label class="block text-xs font-bold text-slate-700 mb-2">تعليمات وملاحظات للطيار</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 right-0 top-3 pr-3 text-amber-500"><i class="fa-regular fa-comment-dots"></i></span>
+                                <input type="text" id="cust-notes" class="w-full pl-3 pr-9 py-2.5 border border-amber-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 bg-amber-50/30 text-sm font-semibold text-amber-900" placeholder="أي ملاحظات هامة تخص التجهيز أو التوصيل...">
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- إدخال الأصناف الذكي بنظام الـ Enter والمسح التلقائي والتكرار التنبيهي -->
-                <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 shadow-sm sticky top-2 z-10">
-                    <div class="flex items-end gap-3">
-                        <div class="w-1/4">
-                            <label class="block text-xs font-bold text-blue-900 mb-1 flex justify-between">
-                                <span>كود الصنف (اكتب واضغط Enter)</span>
-                                <span class="text-gray-500 text-[10px]">اضغط F1 للبحث</span>
+                <div class="bg-indigo-900 rounded-2xl p-4 shadow-lg shadow-indigo-900/20 sticky top-[72px] z-30 border border-indigo-800">
+                    <div class="flex flex-wrap md:flex-nowrap items-end gap-3">
+                        <div class="w-full md:w-1/4">
+                            <label class="block text-xs font-bold text-indigo-200 mb-1.5 flex justify-between">
+                                <span><i class="fa-solid fa-barcode mr-1"></i> كود الصنف</span>
+                                <span class="text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded text-[10px] border border-indigo-800">F1 للبحث</span>
                             </label>
                             <div class="flex relative">
-                                <input type="text" id="inv-item-code" onkeydown="handleItemInputKey(event)" class="w-full px-3 py-2 border-blue-300 border rounded-r-xl outline-none focus:ring-2 focus:ring-blue-500 font-mono font-bold" placeholder="أدخل الكود">
-                                <button type="button" onclick="openSearchModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-l-xl transition flex items-center justify-center" title="بحث متقدم">
-                                    <i class="fa-solid fa-search"></i>
+                                <input type="text" id="inv-item-code" onkeydown="handleItemInputKey(event)" class="w-full px-4 py-3 border-0 rounded-r-xl outline-none focus:ring-2 focus:ring-white bg-indigo-950 text-white font-mono font-bold text-lg placeholder-indigo-700 transition-shadow" placeholder="الباركود...">
+                                <button type="button" onclick="openSearchModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 rounded-l-xl transition-colors flex items-center justify-center border-l border-y border-indigo-600 active:scale-95 shadow-inner" title="بحث متقدم">
+                                    <i class="fa-solid fa-magnifying-glass-plus text-lg"></i>
                                 </button>
                             </div>
                         </div>
-                        <div class="flex-1">
-                            <label class="block text-xs font-bold text-blue-900 mb-1">اسم الصنف</label>
-                            <input type="text" id="inv-item-name" readonly class="w-full px-3 py-2 bg-gray-100 border border-blue-200 rounded-xl outline-none text-gray-500" placeholder="يظهر تلقائياً">
+                        <div class="flex-1 w-full">
+                            <label class="block text-xs font-bold text-indigo-200 mb-1.5">البيان</label>
+                            <input type="text" id="inv-item-name" readonly class="w-full px-4 py-3 bg-indigo-950/50 border-0 rounded-xl outline-none text-indigo-300 font-semibold cursor-not-allowed">
                         </div>
-                        <div class="w-24">
-                            <label class="block text-xs font-bold text-blue-900 mb-1">السعر</label>
-                            <input type="number" step="0.01" id="inv-item-price" onkeydown="handlePriceInputKey(event)" class="w-full px-3 py-2 border-blue-300 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 font-bold text-blue-600">
+                        <div class="w-full md:w-28">
+                            <label class="block text-xs font-bold text-indigo-200 mb-1.5">السعر</label>
+                            <input type="number" step="0.01" id="inv-item-price" onkeydown="handlePriceInputKey(event)" class="w-full px-4 py-3 border-0 rounded-xl outline-none focus:ring-2 focus:ring-white font-black text-indigo-900 bg-indigo-50 text-center text-lg">
                         </div>
-                        <div class="w-20">
-                            <label class="block text-xs font-bold text-blue-900 mb-1">الكمية</label>
-                            <input type="number" id="inv-item-qty" onkeydown="handleQtyInputKey(event)" value="1" min="1" class="w-full px-3 py-2 border-blue-300 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-center font-bold">
+                        <div class="w-full md:w-24">
+                            <label class="block text-xs font-bold text-indigo-200 mb-1.5">الكمية</label>
+                            <input type="number" id="inv-item-qty" onkeydown="handleQtyInputKey(event)" value="1" min="1" class="w-full px-4 py-3 border-0 rounded-xl outline-none focus:ring-2 focus:ring-white text-center font-black text-lg bg-white text-slate-900">
                         </div>
-                        <button type="button" onclick="addItemToInvoiceList()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-md">
-                            <i class="fa-solid fa-plus"></i> إضافة
+                        <button type="button" onclick="addItemToInvoiceList()" class="w-full md:w-auto bg-emerald-500 hover:bg-emerald-400 text-white font-black py-3 px-8 rounded-xl transition-all shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 active:scale-95 text-lg">
+                            <i class="fa-solid fa-plus"></i> إدراج
                         </button>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
-                    <table class="w-full text-right border-collapse">
-                        <thead>
-                            <tr class="bg-gray-100 text-xs font-bold text-gray-600 border-b">
-                                <th class="p-3">كود</th>
-                                <th class="p-3">اسم الصنف</th>
-                                <th class="p-3">السعر الأساسي</th>
-                                <th class="p-3 w-32">السعر البيعي</th>
-                                <th class="p-3 w-24 text-center">الكمية</th>
-                                <th class="p-3">الإجمالي</th>
-                                <th class="p-3">فرق السعر</th>
-                                <th class="p-3 text-center">إجراء</th>
-                            </tr>
-                        </thead>
-                        <tbody id="current-invoice-items" class="text-sm divide-y"></tbody>
-                    </table>
-                    
-                    <div class="bg-gray-50 p-6 border-t grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                        <div class="bg-white p-3 rounded-xl border">
-                            <span class="block text-xs font-bold text-gray-500">عدد الأصناف</span>
-                            <span id="tot-distinct-items" class="text-xl font-bold text-gray-800">0</span>
-                        </div>
-                        <div class="bg-white p-3 rounded-xl border">
-                            <span class="block text-xs font-bold text-gray-500">إجمالي القطع</span>
-                            <span id="tot-pieces" class="text-xl font-bold text-gray-800">0</span>
-                        </div>
-                        <div class="bg-white p-3 rounded-xl border">
-                            <span class="block text-xs font-bold text-gray-500">فرق الأسعار الكلي</span>
-                            <span id="tot-price-diff" class="text-xl font-bold text-red-600">0.00</span>
-                        </div>
-                        <div class="bg-blue-600 p-3 rounded-xl text-white">
-                            <span class="block text-xs font-bold text-blue-200">إجمالي الفاتورة النهائي</span>
-                            <span id="tot-invoice-amount" class="text-2xl font-black">0.00</span>
-                        </div>
-                    </div>
-
-                    <div class="p-4 bg-gray-100 border-t flex justify-end gap-3">
-                        <button id="btn-suspend-invoice" onclick="processInvoiceWithVerification()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition shadow-sm">
-                            <i class="fa-solid fa-pause"></i> حفظ وتعليق الفاتورة (F10)
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- تبويب الفواتير المعلقة والمراقبة -->
-            <section id="suspended-tab" class="tab-content space-y-4 hidden">
-                <div class="bg-white rounded-2xl shadow-sm border p-4 bg-gray-50 flex justify-between items-center flex-wrap gap-3">
-                    <div>
-                        <h3 class="font-bold text-gray-900">شاشة مراقبة الفواتير المعلقة والتجهيز</h3>
-                        <p class="text-xs text-gray-500 mt-1">تظهر هنا الفواتير وحالتها المباشرة لخدمة العملاء والفروع بالتحديث اللحظي.</p>
-                    </div>
-                    <div class="relative w-full md:w-1/3">
-                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 text-xs">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </span>
-                        <input type="text" id="search-suspended" oninput="window.renderSuspendedInvoices()" class="w-full pl-3 pr-8 py-2 border rounded-xl outline-none text-sm font-bold shadow-sm" placeholder="ابحث برقم الفاتورة أو رقم الموبايل...">
-                    </div>
-                </div>
-                <div id="suspended-invoices-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
-            </section>
-
-            <!-- تبويب التقارير الشاملة -->
-            <section id="reports-tab" class="tab-content space-y-6 hidden">
-                <div class="bg-white rounded-2xl shadow-sm border p-6">
-                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-chart-pie text-blue-600"></i> التقارير الذكية الشاملة للعمليات المكتملة
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                        <div id="report-branch-filter-container">
-                            <label class="block text-xs font-bold text-gray-700 mb-1">الفرع المستهدف</label>
-                            <select id="report-branch-select" class="w-full px-3 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="ALL">جميع الفروع والخدمات</option>
-                            </select>
-                        </div>
-                        <button onclick="loadReportsData()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl text-sm transition">
-                            <i class="fa-solid fa-arrows-rotate"></i> تحديث وعرض البيانات
-                        </button>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
-                    <div class="overflow-x-auto">
+                <div class="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden flex flex-col min-h-[300px]">
+                    <div class="flex-1 overflow-x-auto custom-scrollbar">
                         <table class="w-full text-right border-collapse">
                             <thead>
-                                <tr class="bg-gray-100 text-xs font-bold text-gray-600 border-b">
-                                    <th class="p-2 w-[100px]">رقم (يدوي)<br><input type="text" class="filter-input" data-col="manualNo" placeholder="بحث..."></th>
-                                    <th class="p-2 min-w-[130px]">بحث بصنف محدد<br>
-                                        <div class="flex relative mt-1">
-                                            <input type="text" class="filter-input !mt-0 w-full pr-8 text-blue-600 font-bold" data-col="reportItemCode" placeholder="كود الصنف...">
-                                            <button onclick="openSearchModal('report')" class="absolute right-1 top-1 text-blue-600 hover:text-blue-800 transition"><i class="fa-solid fa-search"></i></button>
-                                        </div>
-                                    </th>
-                                    <th class="p-2">تفاصيل الفاتورة<br><input type="text" class="filter-input" data-col="invDetails" placeholder="بحث تفصيلي..."></th>
-                                    <th class="p-2">الفرع<br><input type="text" class="filter-input" data-col="branch" placeholder="بحث..."></th>
-                                    <th class="p-2">الموظفين (إنشاء/إغلاق)<br><input type="text" class="filter-input" data-col="emps" placeholder="بحث بالاسم..."></th>
-                                    <th class="p-2">العميل<br><input type="text" class="filter-input" data-col="cust" placeholder="بحث..."></th>
-                                    <th class="p-2">الإجمالي<br><input type="text" class="filter-input" data-col="total" placeholder="بحث..."></th>
-                                    <th class="p-2 text-center w-[100px]">العمليات</th>
+                                <tr class="bg-slate-50 text-xs font-black text-slate-500 border-b border-slate-200 uppercase tracking-wider">
+                                    <th class="p-4">الكود</th>
+                                    <th class="p-4 w-1/3">البيان</th>
+                                    <th class="p-4">س.أساسي</th>
+                                    <th class="p-4 w-32">س.البيع</th>
+                                    <th class="p-4 w-28 text-center">الكمية</th>
+                                    <th class="p-4">الإجمالي</th>
+                                    <th class="p-4 text-center">الإجراء</th>
                                 </tr>
                             </thead>
-                            <tbody id="reports-table-body" class="text-sm divide-y"></tbody>
+                            <tbody id="current-invoice-items" class="text-sm divide-y divide-slate-100">
+                                </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="bg-slate-50 border-t border-slate-200">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-0 divide-x divide-x-reverse divide-slate-200">
+                            <div class="p-4 text-center hover:bg-slate-100 transition-colors">
+                                <span class="block text-xs font-bold text-slate-500 mb-1 uppercase">عدد الأصناف</span>
+                                <span id="tot-distinct-items" class="text-2xl font-black text-slate-800">0</span>
+                            </div>
+                            <div class="p-4 text-center hover:bg-slate-100 transition-colors">
+                                <span class="block text-xs font-bold text-slate-500 mb-1 uppercase">إجمالي القطع</span>
+                                <span id="tot-pieces" class="text-2xl font-black text-slate-800">0</span>
+                            </div>
+                            <div class="p-4 text-center bg-red-50/50">
+                                <span class="block text-xs font-bold text-red-400 mb-1 uppercase">فرق الخصم/الزيادة</span>
+                                <span id="tot-price-diff" class="text-xl font-black text-red-600">0.00</span>
+                            </div>
+                            <div class="p-4 text-center bg-indigo-600 relative overflow-hidden group">
+                                <div class="absolute inset-0 bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <div class="relative z-10">
+                                    <span class="block text-xs font-bold text-indigo-200 mb-1">الصافي المطلوب دفعه</span>
+                                    <span id="tot-invoice-amount" class="text-3xl font-black text-white tracking-tight drop-shadow-md">0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-4 sm:p-6 bg-white border-t border-slate-200 flex justify-end">
+                        <button id="btn-suspend-invoice" onclick="processInvoiceWithVerification()" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-400 text-white font-black py-4 px-10 rounded-xl transition-all shadow-xl shadow-amber-500/20 active:scale-[0.98] flex items-center justify-center gap-3 text-lg border-b-4 border-amber-600 active:border-b-0 active:translate-y-1">
+                            <i class="fa-solid fa-paper-plane text-xl"></i> إرسال وتعليق الطلب (F10)
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="suspended-tab" class="tab-content space-y-6 hidden">
+                <div class="bg-white rounded-2xl shadow-soft border border-slate-200 p-5 flex justify-between items-center flex-wrap gap-4 relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-2 h-full bg-indigo-500"></div>
+                    <div class="pl-4 pr-6">
+                        <h3 class="font-black text-slate-900 text-xl flex items-center gap-2"><i class="fa-solid fa-satellite-dish text-indigo-500 animate-pulse"></i> الفواتير معلقة للفرع والمتابعة </h3>
+                        <p class="text-sm font-semibold text-slate-500 mt-1">تحديث حي ومباشر لجميع حالات الأوردرات بين الفروع وخدمة العملاء.</p>
+                    </div>
+                    <div class="relative w-full md:w-80">
+                        <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" id="search-suspended" oninput="window.renderSuspendedInvoices()" class="w-full pl-4 pr-11 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-bold shadow-sm bg-slate-50 focus:bg-white transition-all" placeholder="بحث برقم الفاتورة أو الموبايل...">
+                    </div>
+                </div>
+                <div id="suspended-invoices-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+            </section>
+
+            <section id="reports-tab" class="tab-content space-y-6 hidden">
+                <div class="bg-white rounded-2xl shadow-soft border border-slate-200 p-6 sm:p-8">
+                    <h3 class="text-xl font-black text-slate-900 mb-6 flex items-center gap-3 border-b border-slate-100 pb-4">
+                        <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl"><i class="fa-solid fa-chart-pie"></i></div>
+                        مركز التقارير والأرشيف
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 items-end">
+                        <div id="report-branch-filter-container" class="md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-2">فلترة حسب نقطة البيع / الفرع</label>
+                            <select id="report-branch-select" class="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 font-bold text-slate-800 cursor-pointer shadow-sm">
+                                <option value="ALL">جميع الفروع ونقاط الخدمة المتاحة</option>
+                            </select>
+                        </div>
+                        <button onclick="loadReportsData()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-slate-800/20 active:scale-95 flex items-center justify-center gap-2 h-[50px]">
+                            <i class="fa-solid fa-arrows-rotate"></i> جلب السجلات
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-right border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-xs font-black text-slate-600 border-b border-slate-200 align-top">
+                                    <th class="p-3 w-[110px]">
+                                        <div class="mb-1 text-indigo-700">الرقم المرجعي</div>
+                                        <input type="text" class="filter-input" data-col="manualNo" placeholder="بحث برقم...">
+                                    </th>
+                                    <th class="p-3 min-w-[140px]">
+                                        <div class="mb-1 text-indigo-700">بحث بصنف محدد</div>
+                                        <div class="flex relative mt-1.5">
+                                            <input type="text" class="filter-input !mt-0 w-full pr-8 text-indigo-600 font-bold bg-indigo-50 border-indigo-200" data-col="reportItemCode" placeholder="باركود...">
+                                            <button onclick="openSearchModal('report')" class="absolute right-2 top-1.5 text-indigo-500 hover:text-indigo-700 transition-colors"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+                                        </div>
+                                    </th>
+                                    <th class="p-3 min-w-[150px]">
+                                        <div class="mb-1">خصائص الفاتورة</div>
+                                        <input type="text" class="filter-input" data-col="invDetails" placeholder="الفئة، الأوردر...">
+                                    </th>
+                                    <th class="p-3">
+                                        <div class="mb-1">جهة التنفيذ</div>
+                                        <input type="text" class="filter-input" data-col="branch" placeholder="بحث...">
+                                    </th>
+                                    <th class="p-3 min-w-[130px]">
+                                        <div class="mb-1">المسؤولين (فتح/غلق)</div>
+                                        <input type="text" class="filter-input" data-col="emps" placeholder="بحث باسم...">
+                                    </th>
+                                    <th class="p-3 min-w-[130px]">
+                                        <div class="mb-1">بيانات العميل</div>
+                                        <input type="text" class="filter-input" data-col="cust" placeholder="بحث...">
+                                    </th>
+                                    <th class="p-3 w-[100px]">
+                                        <div class="mb-1">الصافي</div>
+                                        <input type="text" class="filter-input" data-col="total" placeholder="بحث...">
+                                    </th>
+                                    <th class="p-3 text-center w-[90px] align-middle">أدوات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reports-table-body" class="text-sm divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
                 </div>
@@ -664,22 +752,22 @@
 
         </main>
     </div>
-    <div id="custom-prompt-modal" class="fixed inset-0 bg-gray-950 bg-opacity-50 flex items-center justify-center z-[9999] hidden animate-fade-in">
-    <div class="bg-white rounded-xl shadow-2xl p-6 w-96 max-w-[90%] mx-auto text-right" dir="rtl">
-        <h3 class="text-lg font-black text-gray-800 mb-2 flex items-center gap-2">
-            <i class="fa-solid fa-shield-halved text-blue-600"></i>
-            <span id="custom-prompt-title">تأكيد العملية</span>
-        </h3>
-        <p id="custom-prompt-message" class="text-sm text-gray-600 mb-4 font-semibold"></p>
-        <input type="password" id="custom-prompt-input" class="w-full border-2 border-gray-200 rounded-lg px-3 py-2.5 mb-4 focus:outline-none focus:border-blue-500 font-mono text-center text-xl tracking-widest" placeholder="••••" autocomplete="off">
-        <div class="flex justify-end gap-2">
-            <button id="custom-prompt-cancel" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-bold text-sm transition">إلغاء</button>
-            <button id="custom-prompt-confirm" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-bold text-sm transition">تأكيد</button>
+
+    <div id="custom-prompt-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-[9999] hidden transition-opacity">
+        <div class="bg-white rounded-[2rem] shadow-2xl p-8 w-[400px] max-w-[90%] mx-auto text-right border border-slate-100 transform scale-100 transition-transform" dir="rtl">
+            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border-4 border-white shadow-sm -mt-14 relative z-10">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h3 class="text-xl font-black text-slate-900 mb-2 text-center" id="custom-prompt-title">إجراء أمني مطلوب</h3>
+            <p id="custom-prompt-message" class="text-sm text-slate-500 mb-6 font-bold text-center leading-relaxed"></p>
+            <input type="password" id="custom-prompt-input" class="w-full border-2 border-slate-200 rounded-xl px-4 py-3.5 mb-6 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 font-mono text-center text-2xl tracking-[0.5em] font-black bg-slate-50 text-slate-800 transition-all" placeholder="••••" autocomplete="off">
+            <div class="flex gap-3">
+                <button id="custom-prompt-cancel" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-sm transition-colors active:scale-95">تراجع</button>
+                <button id="custom-prompt-confirm" class="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold text-sm transition-all shadow-lg shadow-indigo-500/30 active:scale-95">تأكيد التفويض</button>
+            </div>
         </div>
     </div>
-</div>
 
-    <!-- حاوية طباعة الريسيت (محمية ومحذوف منها أي تسميات خارجية أو كلمة صيدلية) -->
     <div id="thermal-receipt" class="hidden"></div>
 
     <script type="module">
@@ -709,7 +797,6 @@
         window.currentItemsPage = 1;
         const itemsPerPage = 20;
 
-        // إدارة الاختصارات والكيبورد (F1 للبحث و F10 للتعليق)
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F1') {
                 e.preventDefault();
@@ -768,7 +855,7 @@
             
             const userBadge = document.getElementById('user-badge');
             if (userBadge) {
-                userBadge.innerText = `${currentUser.name} (${currentUser.role === 'ADMIN' ? 'مدير النظام' : currentUser.role === 'CUSTOMER_SERVICE' ? 'خدمة العملاء' : 'فرع'})`;
+                userBadge.innerHTML = `<i class="fa-solid fa-circle-user mr-1"></i> ${currentUser.name} <span class="mx-1 opacity-50">|</span> ${currentUser.role === 'ADMIN' ? 'المدير العام' : currentUser.role === 'CUSTOMER_SERVICE' ? 'خدمة العملاء' : 'منفذ بيع'}`;
             }
 
             const allTabs = ['btn-invoice-tab', 'btn-items-tab', 'btn-branches-tab', 'btn-employees-tab', 'btn-settings-tab', 'btn-suspended-tab', 'btn-reports-tab'];
@@ -815,13 +902,13 @@
             document.getElementById(tabId).classList.remove('hidden');
 
             document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('bg-blue-600', 'text-white');
-                btn.classList.add('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
+                btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-500/20');
+                btn.classList.add('bg-white', 'text-slate-600');
             });
             const activeBtn = document.getElementById(`btn-${tabId}`);
             if(activeBtn) {
-                activeBtn.classList.remove('bg-gray-100', 'text-gray-600', 'hover:bg-gray-200');
-                activeBtn.classList.add('bg-blue-600', 'text-white');
+                activeBtn.classList.remove('bg-white', 'text-slate-600');
+                activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-md', 'shadow-indigo-500/20');
             }
             if (tabId === 'reports-tab') loadReportsData();
         };
@@ -830,12 +917,12 @@
             if (!textToCopy || textToCopy === '-' || textToCopy.trim() === '') return;
             navigator.clipboard.writeText(textToCopy).then(() => {
                 const originalIcon = btnElement.innerHTML;
-                btnElement.innerHTML = '<i class="fa-solid fa-check text-green-500"></i>';
+                btnElement.innerHTML = '<i class="fa-solid fa-check text-emerald-500"></i>';
                 setTimeout(() => { btnElement.innerHTML = originalIcon; }, 1500);
             });
         };
 
-        /* --- إعدادات الأنواع والتحصيل وفئات الفواتير --- */
+        /* --- إعدادات الأنواع والتحصيل --- */
         function observeSettings() {
             onValue(ref(db, 'settings/orderTypes'), (snap) => {
                 orderTypes = snap.val() || {}; renderSettingsTables(); populateDropdowns();
@@ -897,15 +984,15 @@
         function renderSettingsTables() {
             let oBody = document.getElementById('order-types-body');
             oBody.innerHTML = '';
-            for(let key in orderTypes) oBody.innerHTML += `<tr><td class="p-2">${orderTypes[key].code}</td><td class="p-2">${orderTypes[key].name}</td><td class="p-2 text-center"><button onclick="editSetting('order', '${key}')" class="text-amber-500"><i class="fa-solid fa-pen"></i></button></td></tr>`;
+            for(let key in orderTypes) oBody.innerHTML += `<tr class="hover:bg-slate-50 transition-colors"><td class="p-2 font-mono text-xs font-bold">${orderTypes[key].code}</td><td class="p-2 font-semibold text-slate-700">${orderTypes[key].name}</td><td class="p-2 text-center"><button onclick="editSetting('order', '${key}')" class="text-indigo-500 hover:text-indigo-700 bg-indigo-50 p-1.5 rounded"><i class="fa-solid fa-pen"></i></button></td></tr>`;
             
             let iBody = document.getElementById('invoice-types-body');
             iBody.innerHTML = '';
-            for(let key in invoiceTypes) iBody.innerHTML += `<tr><td class="p-2">${invoiceTypes[key].code}</td><td class="p-2">${invoiceTypes[key].name}</td><td class="p-2 text-center"><button onclick="editSetting('invoice', '${key}')" class="text-amber-500"><i class="fa-solid fa-pen"></i></button></td></tr>`;
+            for(let key in invoiceTypes) iBody.innerHTML += `<tr class="hover:bg-slate-50 transition-colors"><td class="p-2 font-mono text-xs font-bold">${invoiceTypes[key].code}</td><td class="p-2 font-semibold text-slate-700">${invoiceTypes[key].name}</td><td class="p-2 text-center"><button onclick="editSetting('invoice', '${key}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 p-1.5 rounded"><i class="fa-solid fa-pen"></i></button></td></tr>`;
             
             let pBody = document.getElementById('payment-types-body');
             pBody.innerHTML = '';
-            for(let key in paymentTypes) pBody.innerHTML += `<tr><td class="p-2">${paymentTypes[key].code}</td><td class="p-2">${paymentTypes[key].name}</td><td class="p-2 text-center"><button onclick="editSetting('payment', '${key}')" class="text-amber-500"><i class="fa-solid fa-pen"></i></button></td></tr>`;
+            for(let key in paymentTypes) pBody.innerHTML += `<tr class="hover:bg-slate-50 transition-colors"><td class="p-2 font-mono text-xs font-bold">${paymentTypes[key].code}</td><td class="p-2 font-semibold text-slate-700">${paymentTypes[key].name}</td><td class="p-2 text-center"><button onclick="editSetting('payment', '${key}')" class="text-emerald-500 hover:text-emerald-700 bg-emerald-50 p-1.5 rounded"><i class="fa-solid fa-pen"></i></button></td></tr>`;
         }
 
         function populateDropdowns() {
@@ -913,16 +1000,16 @@
             let iSel = document.getElementById('inv-type-select');
             let pSel = document.getElementById('pay-type-select');
             
-            oSel.innerHTML = '<option value="">اختر نوع الأوردر...</option>';
-            iSel.innerHTML = '<option value="">اختر نوع الفاتورة...</option>';
-            pSel.innerHTML = '<option value="">اختر نوع التحصيل...</option>';
+            oSel.innerHTML = '<option value="">تحديد...</option>';
+            iSel.innerHTML = '<option value="">تحديد...</option>';
+            pSel.innerHTML = '<option value="">تحديد...</option>';
             
             for(let k in orderTypes) oSel.innerHTML += `<option value="${orderTypes[k].name}">${orderTypes[k].name}</option>`;
             for(let k in invoiceTypes) iSel.innerHTML += `<option value="${invoiceTypes[k].name}">${invoiceTypes[k].name}</option>`;
             for(let k in paymentTypes) pSel.innerHTML += `<option value="${paymentTypes[k].name}">${paymentTypes[k].name}</option>`;
         }
 
-        /* --- محرك الموظفين (إدارة وصلاحيات وتأكيدات) --- */
+        /* --- محرك الموظفين --- */
         function observeEmployees() {
             onValue(ref(db, 'employees'), (snapshot) => {
                 allEmployees = snapshot.val() || {};
@@ -964,13 +1051,13 @@
                     bName = allBranches[emp.branch].name;
                 }
                 tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50">
-                        <td class="p-3 font-mono font-bold">${emp.code}</td>
-                        <td class="p-3 font-semibold">${emp.name}</td>
-                        <td class="p-3"><span class="px-2 py-1 rounded-full text-xs font-bold ${emp.entity === 'كول سنتر' ? 'bg-blue-100 text-blue-800':'bg-green-100 text-green-800'}">${emp.entity}</span></td>
-                        <td class="p-3 text-gray-600 font-medium">${bName}</td>
-                        <td class="p-3 text-center">
-                            <button onclick="deleteEmployee('${emp.code}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash-can"></i></button>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 font-mono font-bold text-slate-700">${emp.code}</td>
+                        <td class="p-4 font-bold text-slate-800">${emp.name}</td>
+                        <td class="p-4"><span class="px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide ${emp.entity === 'كول سنتر' ? 'bg-indigo-100 text-indigo-700':'bg-emerald-100 text-emerald-700'}">${emp.entity}</span></td>
+                        <td class="p-4 text-slate-600 font-semibold text-xs">${bName}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="deleteEmployee('${emp.code}')" class="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-lg transition-colors"><i class="fa-solid fa-trash-can"></i></button>
                         </td>
                     </tr>
                 `;
@@ -978,12 +1065,12 @@
         }
 
         window.deleteEmployee = async function(code) {
-            if(confirm('هل أنت متأكد من حذف هذا الموظف نهائياً؟')) {
+            if(confirm('هل أنت متأكد من إزالة هذا الموظف نهائياً من سجلات النظام؟')) {
                 await remove(ref(db, `employees/${code}`));
             }
         };
 
-        /* --- محرك إدارة الأصناف والـ Excel --- */
+        /* --- محرك الأصناف --- */
         function observeItems() {
             onValue(ref(db, 'items'), (snapshot) => {
                 allItems = snapshot.val() || {};
@@ -1027,7 +1114,7 @@
                 }
             }
             if (filteredItems.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">لا توجد أصناف</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-400 font-bold"><i class="fa-solid fa-box-open text-3xl mb-2 block"></i> القائمة فارغة</td></tr>`;
                 return;
             }
             const totalPages = Math.ceil(filteredItems.length / itemsPerPage) || 1;
@@ -1035,12 +1122,12 @@
             const paginatedItems = filteredItems.slice((window.currentItemsPage - 1) * itemsPerPage, window.currentItemsPage * itemsPerPage);
             paginatedItems.forEach(item => {
                 tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="p-3 font-mono font-bold">${item.code}</td>
-                        <td class="p-3 font-semibold">${item.name}</td>
-                        <td class="p-3 text-blue-600 font-bold">${parseFloat(item.price).toFixed(2)}</td>
-                        <td class="p-3 text-center">
-                            <button onclick="editItem('${item.code}')" class="text-amber-600 hover:text-amber-800"><i class="fa-solid fa-pen"></i></button>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 font-mono font-bold text-slate-700">${item.code}</td>
+                        <td class="p-4 font-bold text-slate-800 text-sm">${item.name}</td>
+                        <td class="p-4 text-indigo-600 font-black">${parseFloat(item.price).toFixed(2)}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="editItem('${item.code}')" class="text-amber-500 hover:text-amber-700 bg-amber-50 p-2 rounded-lg transition-colors"><i class="fa-solid fa-pen"></i></button>
                         </td>
                     </tr>
                 `;
@@ -1051,7 +1138,7 @@
         window.nextItemPage = function() { window.currentItemsPage++; window.renderItemsTable(); };
         window.prevItemPage = function() { if (window.currentItemsPage > 1) { window.currentItemsPage--; window.renderItemsTable(); } };
 
-        /* --- محرك الفروع والربط التنظيمي --- */
+        /* --- الفروع والربط التنظيمي --- */
         function observeBranches() {
             onValue(ref(db, 'branches'), (snapshot) => {
                 allBranches = snapshot.val() || {};
@@ -1068,11 +1155,11 @@
                 for (let code in allBranches) {
                     const b = allBranches[code];
                     tbody.innerHTML += `
-                        <tr class="hover:bg-gray-50">
-                            <td class="p-3 font-mono font-bold">${b.code}</td>
-                            <td class="p-3 font-semibold">${b.name}</td>
-                            <td class="p-3"><span class="px-2 py-1 rounded-full text-xs font-bold bg-gray-200">${b.type}</span></td>
-                            <td class="p-3 text-center"><button onclick="editBranch('${b.code}')" class="text-amber-600"><i class="fa-solid fa-pen"></i></button></td>
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-4 font-mono font-bold text-slate-700">${b.code}</td>
+                            <td class="p-4 font-bold text-slate-800">${b.name}</td>
+                            <td class="p-4"><span class="px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide bg-slate-200 text-slate-700">${b.type}</span></td>
+                            <td class="p-4 text-center"><button onclick="editBranch('${b.code}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 p-2 rounded-lg transition-colors"><i class="fa-solid fa-pen"></i></button></td>
                         </tr>
                     `;
                     if (b.type === 'BRANCH') {
@@ -1113,17 +1200,16 @@
             document.getElementById('branch-form').reset();
         };
 
-        /* --- إدخال وفلترة المودال المتقدم الأصناف --- */
+        /* --- المودال المتقدم --- */
        window.modalSelectedItemsCode = new Set();
-        window.searchModalMode = 'invoice'; // للتمييز بين الفاتورة والتقارير
+        window.searchModalMode = 'invoice'; 
 
         window.openSearchModal = function(mode = 'invoice') {
             window.searchModalMode = mode;
-            window.modalSelectedItemsCode.clear(); // تصفير التحديد عند فتح النافذة
+            window.modalSelectedItemsCode.clear(); 
             document.getElementById('select-all-modal').checked = false;
             document.getElementById('search-modal').classList.remove('hidden');
-            document.getElementById('modal-search-input').value = '';
-            document.getElementById('modal-search-input').focus();
+            setTimeout(() => document.getElementById('modal-search-input').focus(), 100);
             filterModalItems();
         };
 
@@ -1139,7 +1225,7 @@
                     return;
                 }
                 if (window.modalSelectedItemsCode.size >= 15) {
-                    alert('عفواً، الحد الأقصى للاختيار هو 15 صنف في المرة الواحدة!');
+                    alert('عفواً، الحد الأقصى هو 15 صنف في المرة الواحدة لحماية الأداء!');
                     checkbox.checked = false;
                     return;
                 }
@@ -1157,17 +1243,16 @@
             for (let code in allItems) {
                 const item = allItems[code];
                 if (item.code.toLowerCase().includes(search) || item.name.toLowerCase().includes(search)) {
-                    if (count >= 10) break;
-                    // تفعيل الخانة تلقائياً إذا كان الصنف محدداً مسبقاً في الذاكرة
+                    if (count >= 15) break;
                     const isChecked = window.modalSelectedItemsCode.has(item.code) ? 'checked' : '';
                     tbody.innerHTML += `
-                        <tr class="hover:bg-gray-50">
-                            <td class="p-3 text-center">
-                                <input type="checkbox" class="item-checkbox" data-code="${item.code}" onchange="handleModalCheckboxChange(this, '${item.code}')" ${isChecked}>
+                        <tr class="hover:bg-indigo-50/30 transition-colors cursor-pointer" onclick="document.getElementById('chk-${item.code}').click()">
+                            <td class="p-3 text-center" onclick="event.stopPropagation()">
+                                <input type="checkbox" id="chk-${item.code}" class="item-checkbox w-4 h-4 text-indigo-600 rounded cursor-pointer" data-code="${item.code}" onchange="handleModalCheckboxChange(this, '${item.code}')" ${isChecked}>
                             </td>
-                            <td class="p-3 font-mono font-bold">${item.code}</td>
-                            <td class="p-3 font-semibold text-xs">${item.name}</td>
-                            <td class="p-3 text-blue-600 font-bold text-xs">${parseFloat(item.price).toFixed(2)}</td>
+                            <td class="p-3 font-mono font-bold text-slate-600">${item.code}</td>
+                            <td class="p-3 font-bold text-slate-800 text-xs">${item.name}</td>
+                            <td class="p-3 text-indigo-600 font-black text-xs">${parseFloat(item.price).toFixed(2)}</td>
                         </tr>
                     `;
                     count++;
@@ -1188,9 +1273,6 @@
                 const code = cb.getAttribute('data-code');
                 handleModalCheckboxChange(cb, code);
             });
-            if (isChecked && window.modalSelectedItemsCode.size >= 15) {
-                alert('تم تحديد 15 صنفاً بنجاح (الحد الأقصى).');
-            }
         };
 
         window.addSelectedItemsFromModal = function() {
@@ -1200,7 +1282,6 @@
             }
 
             if (window.searchModalMode === 'report') {
-                // وضع اختيار فلتر التقرير (يضع الكود في مربع البحث ويحدث التقرير)
                 const selectedCode = Array.from(window.modalSelectedItemsCode)[0];
                 const inputEl = document.querySelector('input[data-col="reportItemCode"]');
                 if(inputEl) {
@@ -1211,13 +1292,12 @@
                 return;
             }
 
-            // وضع الفاتورة العادي (يضيف 15 صنف دفعة واحدة)
             window.modalSelectedItemsCode.forEach(code => {
                 const item = allItems[code];
                 if(item) {
                     const exists = currentInvoiceItemsArray.some(x => x.code === code);
                     if(exists) {
-                        if(!confirm(`الصنف [${item.name}] مضاف بالفعل للفاتورة. هل تريد إضافته مرة أخرى؟`)) return;
+                        if(!confirm(`الصنف [${item.name}] مضاف بالفعل، هل تريد تكراره؟`)) return;
                     }
                     currentInvoiceItemsArray.push({ code: item.code, name: item.name, originalPrice: item.price, salePrice: item.price, qty: 1, total: item.price, diff: 0 });
                 }
@@ -1227,7 +1307,7 @@
             closeSearchModal();
         };
 
-        /* --- محرك التوجيه الذكي ومسار حركة الحقول الفورية والتحقق من التكرار --- */
+        /* --- محرك الإدخال السريع --- */
         window.handleItemInputKey = function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -1242,9 +1322,9 @@
                     
                     const priceInput = document.getElementById('inv-item-price');
                     priceInput.focus();
-                    priceInput.select(); // تحديد تلقائي فوري للمسح أو التعديل
+                    priceInput.select(); 
                 } else {
-                    alert('عفواً، الصنف المطلوب غير مسجل بالنظام!');
+                    alert('عفواً، الصنف غير مسجل في قاعدة البيانات!');
                     document.getElementById('inv-item-code').value = "";
                 }
             }
@@ -1255,7 +1335,7 @@
                 e.preventDefault();
                 const qtyInput = document.getElementById('inv-item-qty');
                 qtyInput.focus();
-                qtyInput.select(); // تحديد تلقائي فوري للمسح والكتابة السريعة
+                qtyInput.select();
             }
         };
 
@@ -1273,12 +1353,10 @@
             const qty = parseInt(document.getElementById('inv-item-qty').value);
             if (!code || !name || isNaN(salePrice) || isNaN(qty) || qty <= 0) return;
             
-            // إضافة الرسالة التحذيرية المطلوبة في حالة تكرار الصنف
             const isDuplicate = currentInvoiceItemsArray.some(item => item.code === code);
             if (isDuplicate) {
-                const confirmAdd = confirm('رسالة تحذيرية: تم إضافة هذا الصنف من قبل إلى الفاتورة! هل أنت متأكد من رغبتك في إضافته مرة أخرى؟');
+                const confirmAdd = confirm('تحذير: هذا الصنف موجود بالفعل في القائمة! هل تود الإضافة مجدداً؟');
                 if (!confirmAdd) {
-                    // في حالة "لا" يتم إرجاعه فوراً لخانة الكود لإدخال صنف جديد
                     document.getElementById('inv-item-code').value = '';
                     document.getElementById('inv-item-name').value = '';
                     document.getElementById('inv-item-price').value = '';
@@ -1325,20 +1403,19 @@
                 totalDiff += item.diff;
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50">
-                        <td class="p-3 font-mono">${item.code}</td>
-                        <td class="p-3 font-semibold text-xs">${item.name}</td>
-                        <td class="p-3 text-gray-500">${parseFloat(item.originalPrice).toFixed(2)}</td>
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-3 font-mono font-bold text-slate-600">${item.code}</td>
+                        <td class="p-3 font-bold text-slate-800 text-xs">${item.name}</td>
+                        <td class="p-3 text-slate-500 font-semibold">${parseFloat(item.originalPrice).toFixed(2)}</td>
                         <td class="p-3">
-                            <input type="number" step="0.01" value="${item.salePrice}" class="w-full border rounded px-2 py-1 outline-none text-blue-600 font-bold" onchange="updateInvoiceItem(${index}, 'salePrice', this.value)">
+                            <input type="number" step="0.01" value="${item.salePrice}" class="w-full border border-slate-200 focus:border-indigo-500 rounded-lg px-2 py-1.5 outline-none text-indigo-600 font-black text-center bg-indigo-50/30" onchange="updateInvoiceItem(${index}, 'salePrice', this.value)">
                         </td>
                         <td class="p-3">
-                            <input type="number" value="${item.qty}" class="w-full border rounded px-2 py-1 outline-none text-center font-bold" onchange="updateInvoiceItem(${index}, 'qty', this.value)">
+                            <input type="number" value="${item.qty}" class="w-full border border-slate-200 focus:border-indigo-500 rounded-lg px-2 py-1.5 outline-none text-center font-black text-slate-800 bg-slate-50" onchange="updateInvoiceItem(${index}, 'qty', this.value)">
                         </td>
-                        <td class="p-3 font-bold">${parseFloat(item.total).toFixed(2)}</td>
-                        <td class="p-3 font-bold ${item.diff !== 0 ? 'text-amber-600' : 'text-gray-400'}">${parseFloat(item.diff).toFixed(2)}</td>
+                        <td class="p-3 font-black text-slate-900">${parseFloat(item.total).toFixed(2)}</td>
                         <td class="p-3 text-center">
-                            <button onclick="removeInvoiceItem(${index})" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash-can"></i></button>
+                            <button onclick="removeInvoiceItem(${index})" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors"><i class="fa-solid fa-trash-can"></i></button>
                         </td>
                     </tr>
                 `;
@@ -1350,51 +1427,47 @@
             document.getElementById('tot-invoice-amount').innerText = totalAmount.toFixed(2);
         }
 
-        /* --- نظام تعليق الفاتورة والتحقق من كود الموظف (الزر + F10) --- */
+        /* --- نظام تعليق الفاتورة والتحقق --- */
         window.processInvoiceWithVerification = async function() {
            const manualNo = document.getElementById('inv-manual-no').value.trim();
             if (!manualNo) {
-                alert('عفواً، يجب إدخال رقم الفاتورة اليدوي أولاً!');
+                alert('يجب إدخال رقم الفاتورة المرجعي أولاً!');
+                document.getElementById('inv-manual-no').focus();
                 return;
             }
             if (currentInvoiceItemsArray.length === 0) {
-                alert('الفاتورة فارغة تماماً لا تحتوي على أصناف!');
+                alert('القائمة فارغة! يرجى إضافة أصناف للطلب.');
                 return;
             }
 
-            // --- التعديل الذكي: التحقق من عدم تكرار رقم الفاتورة في قاعدة البيانات ---
             try {
                 const snap = await get(ref(db, 'invoices'));
                 if (snap.exists()) {
                     const invoicesList = snap.val();
                     for (let invId in invoicesList) {
-                        // التحقق: إذا كان الرقم موجوداً، ولسنا في وضع "تعديل" لنفس الفاتورة
                         if (invoicesList[invId].manualInvoiceNo === manualNo && invId !== editingInvoiceId) {
-                            alert(`عفواً! رقم الفاتورة ( ${manualNo} ) مسجل مسبقاً لعميل آخر. يرجى إدخال رقم مختلف!`);
+                            alert(`عذراً! الرقم المرجعي ( ${manualNo} ) مستخدم مسبقاً. يرجى التغيير.`);
                             const manualInput = document.getElementById('inv-manual-no');
                             manualInput.focus();
                             manualInput.select();
-                            return; // إيقاف الحفظ فوراً
+                            return; 
                         }
                     }
                 }
             } catch (error) {
                 console.error("خطأ في فحص الفواتير:", error);
             }
-            // ----------------------------------------------------------------------
 
-            // نافذة طلب كود الموظف للتحقق قبل عملية التعليق باستخدام النافذة المخصصة
-            const empCodeInput = await showCustomPrompt('برجاء إدخال كود الموظف لإتمام عملية حفظ وتعليق الفاتورة:', false);
-            if(empCodeInput === null) return; // إلغاء العملية
+            const empCodeInput = await showCustomPrompt('أدخل كود المرور الخاص بك لاعتماد الطلب وإرساله للفرع:', false);
+            if(empCodeInput === null) return; 
             if(!empCodeInput.trim()) {
-                alert('كود الموظف حقل إلزامي لا يمكن تركه فارغاً!');
+                alert('كود التفويض إلزامي لإتمام العملية!');
                 return;
             }
 
-            // التحقق من وجود الموظف داخل المنظومة
             const empSnap = await get(ref(db, `employees/${empCodeInput.trim()}`));
             if (!empSnap.exists()) {
-                alert('خطأ الأمن والسلامة: كود الموظف غير مسجل بالنظام ولا توجد صلاحية تعليق!');
+                alert('الرقم السري غير صالح، لا توجد صلاحيات!');
                 return;
             }
             const empData = empSnap.val();
@@ -1408,7 +1481,7 @@
             const payType = document.getElementById('pay-type-select').value;
 
             if (!invType || !ordType || !payType) {
-                alert('عفواً، يرجى ملء كافة أنواع الفاتورة والأوردر وطريقة التحصيل قبل الحفظ!');
+                alert('يرجى استكمال بيانات التوجيه كاملة (الفئة، النوع، التحصيل).');
                 return;
             }
 
@@ -1424,7 +1497,7 @@
                 timestamp: Date.now(),
                 dateString: new Date().toLocaleString('ar-EG'),
                 customer: {
-                    name: document.getElementById('cust-name').value.trim() || "عميل نقدي بدون اسم",
+                    name: document.getElementById('cust-name').value.trim() || "عميل بدون اسم",
                     address: document.getElementById('cust-address').value.trim() || "-",
                     phone: document.getElementById('cust-phone').value.trim() || "-",
                     notes: document.getElementById('cust-notes').value.trim() || "-",
@@ -1434,7 +1507,7 @@
                 totalAmount: parseFloat(document.getElementById('tot-invoice-amount').innerText),
                 totalPieces: parseInt(document.getElementById('tot-pieces').innerText),
                 targetBranch: targetBranch,
-                createdBy: employeeName, // حفظ اسم الموظف الفعلي وليس كوده في التقرير
+                createdBy: employeeName, 
                 closedBy: '-',
                 status: statusType,
                 editLocked: false 
@@ -1443,10 +1516,10 @@
             await set(ref(db, `invoices/${invoiceId}`), invoiceData);
             
             if(editingInvoiceId) {
-                alert('تم تعديل وتحديث الفاتورة بنجاح في الفواتير المعلقة.');
+                alert('تم حفظ التعديلات وتحديث شاشة الفواتير معلقةبنجاح.');
                 cancelEditFlow(); 
             } else {
-                alert(`تم الحفظ والتعليق بنجاح بواسطة الموظف: ${employeeName}`);
+                alert(`تم الإرسال والتعليق بنجاح بواسطة: ${employeeName}`);
                 resetInvoiceFields();
             }
         };
@@ -1462,7 +1535,7 @@
             document.getElementById('cust-location').value = '';
         }
 
-        /* --- مسار ودورة حياة الفاتورة المعلقة والأزرار الذكية والتراجع خطوة --- */
+        /* --- التعديل ودورة الحياة --- */
         window.editInvoice = async function(id) {
             await update(ref(db, `invoices/${id}`), { editLocked: true });
             const inv = suspendedInvoicesData[id];
@@ -1486,7 +1559,7 @@
             renderCurrentInvoiceTable();
 
             document.getElementById('btn-cancel-edit').classList.remove('hidden');
-            document.getElementById('btn-suspend-invoice').innerHTML = '<i class="fa-solid fa-save"></i> حفظ وتحديث الفاتورة المعلقة';
+            document.getElementById('btn-suspend-invoice').innerHTML = '<i class="fa-solid fa-save text-xl"></i> حفظ وتحديث الطلب المفتوح';
             
             switchTab('invoice-tab');
         };
@@ -1497,61 +1570,59 @@
                 editingInvoiceId = null;
             }
             document.getElementById('btn-cancel-edit').classList.add('hidden');
-            document.getElementById('btn-suspend-invoice').innerHTML = '<i class="fa-solid fa-pause"></i> حفظ وتعليق الفاتورة (F10)';
+            document.getElementById('btn-suspend-invoice').innerHTML = '<i class="fa-solid fa-paper-plane text-xl"></i> إرسال وتعليق الطلب (F10)';
             resetInvoiceFields();
             switchTab('suspended-tab');
         };
 
       window.updateInvoiceStatusLifecycle = async function(id, currentStatus, actionType) {
-    let nextStatus = '';
-    let msg = '';
+            let nextStatus = '';
+            let msg = '';
 
-    if (actionType === 'PREPARE') {
-        nextStatus = 'PREPARING';
-        msg = 'تأكيد استلام الفاتورة؟ (الحالة ستصبح: جاري التجهيز وسيتم قفل التعديل عليها)';
-        if(confirm(msg)) {
-            await update(ref(db, `invoices/${id}`), { status: nextStatus });
-        }
-    } 
-    else if (actionType === 'UNDO') {
-        // زر التراجع عن الحالة: يرجع خطوة واحدة من جاري التجهيز إلى معلقة بالانتظار
-        if (currentStatus === 'PREPARING') {
-            if(confirm('هل العميل طلب إضافة تعديلات وتريد التراجع بالطلب خطوة واحدة إلى حالة (بانتظار التأكيد)؟')) {
-                await update(ref(db, `invoices/${id}`), { status: 'SUSPENDED' });
+            if (actionType === 'PREPARE') {
+                nextStatus = 'PREPARING';
+                msg = 'تأكيد استلام الأوردر بفرع التنفيذ؟ (سيتم قفل التعديل وبدء التجهيز)';
+                if(confirm(msg)) {
+                    await update(ref(db, `invoices/${id}`), { status: nextStatus });
+                }
+            } 
+            else if (actionType === 'UNDO') {
+                if (currentStatus === 'PREPARING') {
+                    if(confirm('هل العميل طلب إضافة تعديلات وتريد إرجاع الطلب لخدمة العملاء (بانتظار التأكيد)؟')) {
+                        await update(ref(db, `invoices/${id}`), { status: 'SUSPENDED' });
+                    }
+                }
+            } 
+            else if (actionType === 'DELIVER') {
+                nextStatus = 'OUT_FOR_DELIVERY';
+                msg = 'هل أنت متأكد من خروج الأوردر للتوصيل؟ (سيغلق الإجراءات نهائياً)';
+                if(confirm(msg)) {
+                    await update(ref(db, `invoices/${id}`), { status: nextStatus });
+                }
+            } 
+            else if (actionType === 'SAVE_FINAL') {
+                const closerCode = await showCustomPrompt('أدخل كودك السري لتأكيد استلام النقدية وإغلاق الفاتورة بالأرشيف:', false);
+                if(closerCode === null) return;
+                if(!closerCode.trim()) {
+                    alert('الكود مطلوب لعملية الإغلاق المالي!');
+                    return;
+                }
+
+                const empSnap = await get(ref(db, `employees/${closerCode.trim()}`));
+                if (!empSnap.exists()) {
+                    alert('الكود المدخل غير مسجل، فشل الإغلاق!');
+                    return;
+                }
+                const empData = empSnap.val();
+                
+                await update(ref(db, `invoices/${id}`), { 
+                    status: 'SENT',
+                    closedBy: empData.name, 
+                    closedDateString: new Date().toLocaleString('ar-EG') 
+                });
+                alert(`تم الإغلاق والأرشفة المالية بنجاح بواسطة: ${empData.name}`);
             }
-        }
-    } 
-    else if (actionType === 'DELIVER') {
-        nextStatus = 'OUT_FOR_DELIVERY';
-        msg = 'هل أنت متأكد من خروج هذا الأوردر للتوصيل مع الدليفري؟ (سيتم قفل الإجراءات تماماً)';
-        if(confirm(msg)) {
-            await update(ref(db, `invoices/${id}`), { status: nextStatus });
-        }
-    } 
-    else if (actionType === 'SAVE_FINAL') {
-        // فتح نافذة تطلب كود الموظف للتأكد والحفظ النهائي المكتمل للتقارير باستخدام النافذة المخصصة
-        const closerCode = await showCustomPrompt('برجاء إدخال كود الموظف المسؤول لتأكيد استلام النقدية وإغلاق الفاتورة نهائياً:', false);
-        if(closerCode === null) return;
-        if(!closerCode.trim()) {
-            alert('كود الموظف مطلوب للإغلاق الفوري!');
-            return;
-        }
-
-        const empSnap = await get(ref(db, `employees/${closerCode.trim()}`));
-        if (!empSnap.exists()) {
-            alert('كود الموظف المدخل غير صحيح، فشل الحفظ النهائي الفوري!');
-            return;
-        }
-        const empData = empSnap.val();
-        
-        await update(ref(db, `invoices/${id}`), { 
-            status: 'SENT',
-            closedBy: empData.name, 
-            closedDateString: new Date().toLocaleString('ar-EG') // تسجيل تاريخ ووقت الإغلاق الفعلي
-        });
-        alert(`تم إغلاق وحفظ الأوردر بنجاح في التقارير بواسطة: ${empData.name}`);
-    }
-};
+        };
 
         function observeSuspendedInvoices() {
             onValue(ref(db, 'invoices'), (snapshot) => {
@@ -1576,101 +1647,96 @@
                 countSuspended++;
                 
                 let itemsHtml = inv.items.map(i => `
-                    <div class="flex flex-col text-xs border-b pb-1 pt-1 text-gray-600 gap-1">
+                    <div class="flex flex-col text-xs border-b border-slate-100 pb-2 pt-2 text-slate-600 gap-1.5">
                         <div class="flex justify-between items-start">
-                            <div class="flex items-center gap-1 font-bold">
-                                ${i.code} <button type="button" onclick="window.copyText(this, '${i.code}')" class="text-gray-400 hover:text-blue-600"><i class="fa-regular fa-copy"></i></button>
+                            <div class="flex items-center gap-1.5 font-bold">
+                                <span class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded">${i.code}</span>
+                                <button type="button" onclick="window.copyText(this, '${i.code}')" class="text-slate-400 hover:text-indigo-600"><i class="fa-regular fa-copy"></i></button>
                             </div>
-                            <span class="font-black text-gray-950">${parseFloat(i.total).toFixed(2)}</span>
+                            <span class="font-black text-slate-900">${parseFloat(i.total).toFixed(2)}</span>
                         </div>
-                        <div class="flex items-center gap-1">
-                            - ${i.name} (×${i.qty}) <button type="button" onclick="window.copyText(this, '${i.name}')" class="text-gray-400 hover:text-blue-600"><i class="fa-regular fa-copy"></i></button>
+                        <div class="flex items-center gap-1.5 font-semibold">
+                            <span class="text-indigo-500 font-black">×${i.qty}</span> ${i.name}
+                            <button type="button" onclick="window.copyText(this, '${i.name}')" class="text-slate-400 hover:text-indigo-600"><i class="fa-regular fa-copy"></i></button>
                         </div>
                     </div>
                 `).join('');
 
                 let statusBadge = '';
                 if (inv.editLocked) {
-                    statusBadge = '<span class="bg-red-100 text-red-800 text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse"><i class="fa-solid fa-lock text-[8px]"></i> يجرى التعديل من خدمة العملاء</span>';
+                    statusBadge = '<span class="bg-red-50 border border-red-200 text-red-700 text-[10px] px-2.5 py-1 rounded-md font-black animate-pulse shadow-sm"><i class="fa-solid fa-user-pen mr-1"></i> قيد التعديل (خدمة العملاء)</span>';
                 } else if (inv.status === 'SUSPENDED') {
-                    statusBadge = '<span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full font-bold"><i class="fa-solid fa-clock"></i> بانتظار التأكيد (كول سنتر)</span>';
+                    statusBadge = '<span class="bg-amber-50 border border-amber-200 text-amber-700 text-[10px] px-2.5 py-1 rounded-md font-black shadow-sm"><i class="fa-solid fa-hourglass-half mr-1"></i> بانتظار استلام الفرع</span>';
                 } else if (inv.status === 'PREPARING') {
-                    statusBadge = '<span class="bg-blue-100 text-blue-800 text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse"><i class="fa-solid fa-box-open"></i> جاري التجهيز بالفرع</span>';
+                    statusBadge = '<span class="bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] px-2.5 py-1 rounded-md font-black animate-pulse shadow-sm"><i class="fa-solid fa-box-open mr-1"></i> جاري التجهيز بالفرع</span>';
                 } else if (inv.status === 'OUT_FOR_DELIVERY') {
-                    statusBadge = '<span class="bg-purple-100 text-purple-800 text-[10px] px-2 py-0.5 rounded-full font-bold"><i class="fa-solid fa-motorcycle"></i> خرج للتوصيل</span>';
+                    statusBadge = '<span class="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] px-2.5 py-1 rounded-md font-black shadow-sm"><i class="fa-solid fa-motorcycle mr-1"></i> خرج للتوصيل (طيار)</span>';
                 }
 
                 let buttonsHtml = '';
                 
-                // لوحة أزرار التحكم وحركة دورة الحياة الشاملة
                 if (currentUser.role === 'BRANCH' || currentUser.role === 'ADMIN') {
                     if (inv.editLocked) {
-                        buttonsHtml += `<button disabled class="bg-gray-300 text-gray-600 text-xs font-bold py-2 rounded-lg cursor-not-allowed border col-span-2"><i class="fa-solid fa-lock"></i> محمي ومقفل حالياً</button>`;
+                        buttonsHtml += `<button disabled class="bg-slate-100 text-slate-400 text-xs font-bold py-2.5 rounded-xl cursor-not-allowed border border-slate-200 col-span-2 shadow-inner"><i class="fa-solid fa-lock"></i> مقفل للتحرير الخارجي</button>`;
                     } else if (inv.status === 'SUSPENDED') {
-                        // زر تأكيد الاستلام (يعني جاري التجهيز)
-                        buttonsHtml += `<button onclick="updateInvoiceStatusLifecycle('${inv.invoiceNo}', '${inv.status}', 'PREPARE')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2 rounded-lg transition shadow-sm col-span-2"><i class="fa-solid fa-check"></i> تأكيد الاستلام (جاري التجهيز)</button>`;
+                        buttonsHtml += `<button onclick="updateInvoiceStatusLifecycle('${inv.invoiceNo}', '${inv.status}', 'PREPARE')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl transition-all shadow-md shadow-indigo-500/20 active:scale-95 col-span-2"><i class="fa-solid fa-check-double"></i> استلام وبدء التجهيز</button>`;
                     } else if (inv.status === 'PREPARING') {
-                        // في حالة جاري التجهيز: يظهر زر التوصيل + زر التراجع عن الحالة خطوة واحدة
                         buttonsHtml += `
-                            <button onclick="updateInvoiceStatusLifecycle('${inv.invoiceNo}', '${inv.status}', 'DELIVER')" class="bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2 rounded-lg transition shadow-sm"><i class="fa-solid fa-motorcycle"></i> خرج للتوصيل</button>
-                            <button onclick="updateInvoiceStatusLifecycle('${inv.invoiceNo}', '${inv.status}', 'UNDO')" class="bg-amber-100 hover:bg-amber-200 text-amber-700 text-xs font-bold py-2 rounded-lg transition shadow-sm"><i class="fa-solid fa-rotate-left"></i> التراجع عن الحالة</button>
+                            <button onclick="updateInvoiceStatusLifecycle('${inv.invoiceNo}', '${inv.status}', 'DELIVER')" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold py-2.5 rounded-xl transition-all shadow-md shadow-emerald-500/20 active:scale-95"><i class="fa-solid fa-motorcycle"></i> تسليم لطيار</button>
+                            <button onclick="updateInvoiceStatusLifecycle('${inv.invoiceNo}', '${inv.status}', 'UNDO')" class="bg-white border-2 border-amber-500 hover:bg-amber-50 text-amber-600 text-xs font-bold py-2.5 rounded-xl transition-all active:scale-95"><i class="fa-solid fa-rotate-left"></i> إرجاع للانتظار</button>
                         `;
                     } else if (inv.status === 'OUT_FOR_DELIVERY') {
-                        // في حالة خرج للتوصيل لا يمكن التعديل نهائياً ويظهر زر حفظ الأوردر المكتمل فقط
-                        buttonsHtml += `<button onclick="updateInvoiceStatusLifecycle('${inv.invoiceNo}', '${inv.status}', 'SAVE_FINAL')" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-2 rounded-lg transition shadow-sm col-span-2"><i class="fa-solid fa-box shadow-sm"></i> حفظ الأوردر (تأكيد كود الموظف)</button>`;
+                        buttonsHtml += `<button onclick="updateInvoiceStatusLifecycle('${inv.invoiceNo}', '${inv.status}', 'SAVE_FINAL')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-2.5 rounded-xl transition-all shadow-md shadow-slate-800/20 active:scale-95 col-span-2"><i class="fa-solid fa-vault"></i> تحصيل نقدية وإغلاق مالي</button>`;
                     }
                 }
 
-                // إدارة حماية وقفل واجهة خدمة العملاء
                 if (currentUser.role === 'CUSTOMER_SERVICE' || currentUser.role === 'ADMIN') {
-                    // التعديل متاح فقط وحصرياً في حالة واحدة: معلقة (SUSPENDED) وغير مقفلة
                     if(!inv.editLocked && inv.status === 'SUSPENDED') {
-                        buttonsHtml += `<button onclick="editInvoice('${inv.invoiceNo}')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 rounded-lg transition"><i class="fa-solid fa-pen"></i> تعديل الفاتورة</button>`;
+                        buttonsHtml += `<button onclick="editInvoice('${inv.invoiceNo}')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-xl transition-all shadow-md shadow-blue-500/20 active:scale-95"><i class="fa-solid fa-pen-to-square"></i> تعديل</button>`;
                     } else {
-                        // إغلاق وقفل التعديل التام في الحالات الأخرى
-                        buttonsHtml += `<button disabled class="bg-gray-100 text-gray-400 text-xs font-bold py-2 rounded-lg border cursor-not-allowed" title="لا يمكن التعديل نهائياً بعد بدء التجهيز أو خروج الأوردر"><i class="fa-solid fa-ban"></i> التعديل مقفل نهائياً</button>`;
+                        buttonsHtml += `<button disabled class="bg-slate-100 text-slate-400 text-xs font-bold py-2.5 rounded-xl border border-slate-200 cursor-not-allowed shadow-inner"><i class="fa-solid fa-ban"></i> قيد التنفيذ</button>`;
                     }
-                    buttonsHtml += `<button onclick="cancelInvoice('${inv.invoiceNo}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold py-2 rounded-lg transition"><i class="fa-solid fa-xmark"></i> إلغاء الطلب</button>`;
+                    buttonsHtml += `<button onclick="cancelInvoice('${inv.invoiceNo}')" class="bg-white border-2 border-red-200 hover:border-red-500 text-red-600 text-xs font-bold py-2.5 rounded-xl transition-all active:scale-95"><i class="fa-solid fa-trash-can"></i> إزالة</button>`;
                 }
                 
-                buttonsHtml += `<button onclick="printThermalReceipt('${inv.invoiceNo}')" class="bg-gray-800 hover:bg-gray-900 text-white text-xs font-bold py-2 rounded-lg transition col-span-full mt-1"><i class="fa-solid fa-print"></i> طباعة ريسيت المبيعات</button>`;
+                buttonsHtml += `<button onclick="printThermalReceipt('${inv.invoiceNo}')" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold py-2.5 rounded-xl transition-all col-span-full mt-2 active:scale-95 border border-slate-200"><i class="fa-solid fa-print"></i> طباعة ريسيت التجهيز</button>`;
 
                 container.innerHTML += `
-                    <div class="bg-white rounded-2xl shadow-sm border p-5 flex flex-col justify-between relative ${inv.editLocked ? 'opacity-80' : ''}">
+                    <div class="bg-white rounded-2xl shadow-soft border border-slate-200 p-6 flex flex-col justify-between relative transition-all hover:shadow-lg ${inv.editLocked ? 'opacity-75 grayscale-[20%]' : ''}">
                         <div>
-                            <div class="flex justify-between items-start border-b pb-2 mb-2">
+                            <div class="flex justify-between items-start border-b border-slate-100 pb-4 mb-4">
                                 <div>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs text-blue-600 font-black">رقم: ${inv.manualInvoiceNo}</span>
-                                        <button type="button" onclick="window.copyText(this, '${inv.manualInvoiceNo}')" class="text-gray-400 hover:text-blue-600"><i class="fa-regular fa-copy"></i></button>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-sm text-indigo-600 font-black tracking-wide">Ref: ${inv.manualInvoiceNo}</span>
+                                        <button type="button" onclick="window.copyText(this, '${inv.manualInvoiceNo}')" class="text-slate-400 hover:text-indigo-600 bg-slate-50 p-1 rounded"><i class="fa-regular fa-copy"></i></button>
                                     </div>
                                     <div class="flex items-center gap-2 mt-1">
-                                        <h4 class="font-bold text-gray-900 text-sm"><i class="fa-solid fa-user-tag text-gray-400"></i> ${inv.customer.name}</h4>
-                                        <button type="button" onclick="window.copyText(this, '${inv.customer.name}')" class="text-gray-400 hover:text-blue-600"><i class="fa-regular fa-copy"></i></button>
+                                        <h4 class="font-black text-slate-800 text-sm"><i class="fa-solid fa-user-circle text-slate-400 mr-1"></i> ${inv.customer.name}</h4>
+                                        <button type="button" onclick="window.copyText(this, '${inv.customer.name}')" class="text-slate-400 hover:text-indigo-600 bg-slate-50 p-1 rounded"><i class="fa-regular fa-copy"></i></button>
                                     </div>
-                                    <div class="flex items-center gap-2 text-xs font-semibold text-gray-700 mt-1">
-                                        <i class="fa-solid fa-phone"></i> ${inv.customer.phone}
+                                    <div class="flex items-center gap-2 text-xs font-bold text-slate-500 mt-2">
+                                        <i class="fa-solid fa-phone bg-slate-100 p-1 rounded-full"></i> <span class="font-mono tracking-wider text-slate-700">${inv.customer.phone}</span>
                                     </div>
                                 </div>
-                                <div class="text-left flex flex-col gap-1 items-end">
+                                <div class="text-left flex flex-col gap-2 items-end">
                                     ${statusBadge}
-                                    <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full mt-1">${inv.paymentMethod || 'غير محدد'}</span>
+                                    <span class="bg-slate-100 text-slate-600 text-[10px] font-black px-2.5 py-1 rounded-md border border-slate-200 shadow-sm">${inv.paymentMethod || 'غير محدد'}</span>
                                 </div>
                             </div>
                             
-                            <div class="bg-yellow-50 p-2 rounded text-xs mb-2">
-                                <span class="font-bold text-yellow-800 break-all"><i class="fa-solid fa-note-sticky"></i> الملاحظات: ${inv.customer.notes}</span>
+                            <div class="bg-amber-50/50 border border-amber-100 p-3 rounded-xl text-xs mb-4 shadow-sm">
+                                <span class="font-bold text-amber-800 break-all leading-relaxed flex gap-2"><i class="fa-solid fa-comment-dots mt-0.5 opacity-70"></i> ${inv.customer.notes}</span>
                             </div>
 
-                            <div class="space-y-1 mb-4 max-h-32 overflow-y-auto pr-1 border-b pb-2">
+                            <div class="space-y-1 mb-5 max-h-36 overflow-y-auto pr-2 custom-scrollbar">
                                 ${itemsHtml}
                             </div>
-                            <div class="flex justify-between items-center bg-gray-50 p-2 rounded-xl text-sm mb-3">
-                                <span class="font-bold text-gray-500 text-xs">إجمالي الطلب الكلي:</span>
-                                <span class="font-black text-blue-600">${parseFloat(inv.totalAmount).toFixed(2)} ج.م</span>
+                            <div class="flex justify-between items-center bg-indigo-50/50 p-3.5 rounded-xl border border-indigo-100 text-sm mb-4">
+                                <span class="font-black text-indigo-400 text-xs uppercase">المطلوب تحصيله</span>
+                                <span class="font-black text-indigo-700 text-lg">${parseFloat(inv.totalAmount).toFixed(2)} ج</span>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-2 pt-2 border-t">
+                        <div class="grid grid-cols-2 gap-3 pt-4 border-t border-slate-100 mt-auto">
                             ${buttonsHtml}
                         </div>
                     </div>
@@ -1683,12 +1749,12 @@
         };
 
         window.cancelInvoice = async function(id) {
-            if(confirm('هل أنت متأكد من إلغاء وحذف هذه الفاتورة تماماً من شاشة المراقبة؟')) {
+            if(confirm('تأكيد: إزالة الطلب بالكامل من دائرة التشغيل اللحظي؟')) {
                 await remove(ref(db, `invoices/${id}`));
             }
         };
 
-        /* --- محرك الطباعة والريسيت (تنظيف تام وشامل من كلمة صيدلية) --- */
+        /* --- محرك الطباعة --- */
         window.printThermalReceipt = async function(id) {
             const snap = await get(ref(db, `invoices/${id}`));
             if (!snap.exists()) return;
@@ -1709,7 +1775,6 @@
                 </div>
             `).join('');
 
-            // تم إزالة اسم الصيدلية أو أي جملة تحتوي على الكلمة نهائياً بناء على طلبك الاحترافي
             receiptContainer.innerHTML = `
                 <div style="text-align: center; font-family: 'Cairo', sans-serif; line-height: 1.4; direction: rtl;">
                     <h2 style="margin: 0; font-size: 15px; font-weight: 900; letter-spacing: 1px;">منظومة الدعم والبيع الذكية</h2>
@@ -1721,53 +1786,61 @@
                             <div><b>رقم الفاتورة:</b> ${inv.manualInvoiceNo}</div>
                             <div><b>نوع الأوردر:</b> ${inv.orderType}</div>
                             <div><b>نوع الفاتورة:</b> ${inv.invoiceType}</div>
-                            <div><b>طريقة التحصيل:</b> ${inv.paymentMethod || 'نقدي'}</div>
+                            <div><b>التحصيل:</b> ${inv.paymentMethod || 'نقدي'}</div>
                             <div style="font-size: 10px; color:#444; margin-top: 2px;"><b>التاريخ:</b> ${inv.dateString}</div>
                         </div>
                         <div id="receipt-qrcode" style="margin-right: 8px;"></div>
                     </div>
                     
-                    <div style="font-weight: bold; text-align: right; font-size: 11px; margin-bottom: 4px; border-bottom: 1px solid #000; padding-bottom:2px;">الأصناف والمبيعات:</div>
+                    <div style="font-weight: bold; text-align: right; font-size: 11px; margin-bottom: 4px; border-bottom: 1px solid #000; padding-bottom:2px;">البيان التفصيلي:</div>
                     ${itemsRowsHtml}
                     
                     <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 900; margin-top: 8px; border-top: 1px solid black; padding-top: 4px;">
-                        <span>إجمالي الحساب النهائي:</span>
+                        <span>الإجمالي الصافي:</span>
                         <span>${parseFloat(inv.totalAmount).toFixed(2)} ج.م</span>
                     </div>
                     
                     <div style="border-top: 1px dashed black; margin: 8px 0;"></div>
                     <div style="text-align: right; font-size: 10px; line-height:1.5;">
                         <div><b>اسم العميل:</b> ${inv.customer.name}</div>
-                        <div><b>العنوان:</b> ${inv.customer.address}</div>
-                        <div><b>رقم التواصل:</b> ${inv.customer.phone}</div>
+                        <div><b>التوصيل:</b> ${inv.customer.address}</div>
+                        <div><b>الموبايل:</b> ${inv.customer.phone}</div>
                         ${inv.customer.notes !== '-' ? `<div><b>ملاحظات:</b> ${inv.customer.notes}</div>` : ''}
                     </div>
-                    <div style="margin-top: 12px; font-size: 10px; color: #444; font-weight:bold; text-align:center;">شكراً لتعاملكم معنا ونتمنى لكم وافر الصحة</div>
+                    <div style="margin-top: 12px; font-size: 10px; color: #444; font-weight:bold; text-align:center;">شكراً لثقتكم الغالية بنا</div>
                 </div>
             `;
 
-           
-            // 1. مسح أي محتوى قديم داخل حاوية الكيو أر
-const qrContainer = document.getElementById('receipt-qrcode');
-qrContainer.innerHTML = ""; 
+            const qrContainer = document.getElementById('receipt-qrcode');
+            qrContainer.innerHTML = ""; 
 
-// 2. اختصار الرابط لتقليل كثافة البيانات (نستخدم حروف مختصرة للبراميترات)
-// بدلاً من name=... استخدم n=... وبدلاً من phone=... استخدم p=...
-const deliveryPageUrl = "https://drwells861-cpu.github.io/pos/delivery.html";
-const qrUrl = `${deliveryPageUrl}?inv=${inv.manualInvoiceNo}&n=${encodeURIComponent(inv.customer.name)}&p=${encodeURIComponent(inv.customer.phone)}&a=${encodeURIComponent(inv.customer.address)}&l=${encodeURIComponent(inv.customer.locationLink)}`;
+            const deliveryPageUrl = "https://drwells861-cpu.github.io/pos/delivery.html";
+            // معالجة القيم الفارغة لتجنب كتابة "undefined" داخل الكيو آر
+            const cName = inv.customer.name || '';
+            const cPhone = inv.customer.phone || '';
+            const cAddress = inv.customer.address || '';
+            const cLocation = inv.customer.locationLink || '';
+            
+            const qrUrl = `${deliveryPageUrl}?inv=${inv.manualInvoiceNo}&n=${encodeURIComponent(cName)}&p=${encodeURIComponent(cPhone)}&a=${encodeURIComponent(cAddress)}&l=${encodeURIComponent(cLocation)}`;
 
-// 3. إنشاء الكود بإعدادات احترافية
-if (inv.customer.phone || inv.customer.locationLink) {
-    new QRCode(qrContainer, {
-        text: qrUrl,
-        width: 128,      // زيادة الحجم قليلاً لضمان الوضوح
-        height: 128,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H // هذا أهم جزء: مستوى تصحيح خطأ مرتفع جداً
-    });
-}
-        /* --- شاشة التقارير الاحترافية (الأعمدة الإضافية + الحذف للآدمين + العرض الجميل) --- */
+            if (cPhone || cLocation) {
+                new QRCode(qrContainer, {
+                    text: qrUrl,
+                    width: 140,      
+                    height: 140,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M // مستوى M أفضل للروابط الطويلة ليقرأه الهاتف بسهولة
+                });
+            }
+            // طباعة مباشرة
+            setTimeout(() => {
+                window.print();
+                receiptContainer.classList.add('hidden');
+            }, 300);
+        };
+
+        /* --- شاشة التقارير الاحترافية --- */
         window.loadReportsData = async function() {
             const snap = await get(ref(db, 'invoices'));
             if(!snap.exists()) return;
@@ -1778,7 +1851,7 @@ if (inv.customer.phone || inv.customer.locationLink) {
 
             for (let id in invoices) {
                 const inv = invoices[id];
-                if (inv.status !== 'SENT') continue; // جلب الفواتير المغلقة والمكتملة فقط
+                if (inv.status !== 'SENT') continue; 
                 
                 if (currentUser.role === 'BRANCH' && String(inv.targetBranch) !== String(currentUser.code)) continue;
                 if (currentUser.role !== 'BRANCH' && filterBranch !== 'ALL' && String(inv.targetBranch) !== String(filterBranch)) continue;
@@ -1807,7 +1880,6 @@ if (inv.customer.phone || inv.customer.locationLink) {
                 const closerName = inv.closedBy || '-';
                 const empsString = `${creatorName} ${closerName}`.toLowerCase();
                 
-                // فلترة الأصناف: التحقق إذا كان الصنف المطلوب موجوداً داخل هذه الفاتورة
                 let hasItem = true;
                 if(fItemCode) {
                     hasItem = inv.items.some(item => item.code.toLowerCase().includes(fItemCode));
@@ -1825,30 +1897,30 @@ if (inv.customer.phone || inv.customer.locationLink) {
                     let deleteButtonHtml = '';
                     if(currentUser.role === 'ADMIN') {
                         deleteButtonHtml = `
-                            <button onclick="deleteInvoiceFromReport('${inv.invoiceNo}')" class="bg-red-50 hover:bg-red-100 text-red-600 px-2 py-1 rounded font-bold transition" title="حذف الفاتورة نهائياً (للأدمن فقط)">
+                            <button onclick="deleteInvoiceFromReport('${inv.invoiceNo}')" class="bg-white border border-red-200 hover:bg-red-50 text-red-500 px-3 py-1.5 rounded-lg font-bold transition-all shadow-sm active:scale-95" title="إزالة قسرية (أدمن)">
                                 <i class="fa-solid fa-trash-can"></i>
                             </button>
                         `;
                     }
 
                     tbody.innerHTML += `
-                        <tr class="hover:bg-blue-50/40 transition text-xs border-b cursor-pointer" onclick="handleRowClick(event, '${inv.invoiceNo}')">
-                            <td class="p-2 font-mono font-bold text-blue-600">${inv.manualInvoiceNo}</td>
-                            <td class="p-2 text-center font-bold text-gray-500 bg-gray-50 border-x">${inv.items.length} أصناف</td>
-                            <td class="p-2 font-medium">
-                                <span class="block text-gray-900 font-bold">${inv.invoiceType}</span>
-                                <span class="text-[10px] text-gray-500">${inv.orderType}</span> | 
-                                <span class="text-[10px] font-bold text-emerald-600">${inv.paymentMethod || 'نقدي'}</span>
+                        <tr class="hover:bg-slate-50 transition-colors text-xs border-b border-slate-100 cursor-pointer" onclick="handleRowClick(event, '${inv.invoiceNo}')">
+                            <td class="p-3 font-mono font-black text-indigo-600">${inv.manualInvoiceNo}</td>
+                            <td class="p-3 text-center font-black text-slate-500 bg-slate-50/50 border-x border-slate-100">${inv.items.length} أصناف</td>
+                            <td class="p-3">
+                                <span class="block text-slate-900 font-black mb-0.5">${inv.invoiceType}</span>
+                                <span class="text-[10px] text-slate-500 font-bold">${inv.orderType}</span> | 
+                                <span class="text-[10px] font-black text-emerald-600">${inv.paymentMethod || 'نقدي'}</span>
                             </td>
-                            <td class="p-2 font-semibold text-gray-700">${resolvedBranchName}</td>
-                            <td class="p-2 font-semibold text-xs">
-                                <span class="text-indigo-600" title="منشئ الفاتورة"><i class="fa-solid fa-pen"></i> ${creatorName}</span><br>
-                                <span class="text-purple-600" title="مغلق الفاتورة"><i class="fa-solid fa-check-double"></i> ${closerName}</span>
+                            <td class="p-3 font-bold text-slate-700">${resolvedBranchName}</td>
+                            <td class="p-3 font-semibold text-xs leading-relaxed">
+                                <span class="text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded" title="فتح بواسطة"><i class="fa-solid fa-plus text-[10px]"></i> ${creatorName}</span><br>
+                                <span class="text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded mt-1 inline-block" title="إغلاق مالي"><i class="fa-solid fa-lock text-[10px]"></i> ${closerName}</span>
                             </td>
-                            <td class="p-2 font-medium">${inv.customer.name}</td>
-                            <td class="p-2 font-black text-emerald-600 text-right">${parseFloat(inv.totalAmount).toFixed(2)} ج.م</td>
-                            <td class="p-2 text-center flex gap-1 justify-center items-center" onclick="event.stopPropagation();">
-                                <button onclick="printThermalReceipt('${inv.invoiceNo}')" class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-2 py-1 rounded font-bold transition"><i class="fa-solid fa-print"></i></button>
+                            <td class="p-3 font-bold text-slate-800">${inv.customer.name}</td>
+                            <td class="p-3 font-black text-slate-900 text-right text-sm">${parseFloat(inv.totalAmount).toFixed(2)}</td>
+                            <td class="p-3 text-center flex flex-col gap-2 justify-center items-center" onclick="event.stopPropagation();">
+                                <button onclick="printThermalReceipt('${inv.invoiceNo}')" class="bg-slate-800 hover:bg-slate-900 text-white w-full py-1.5 rounded-lg font-bold transition-colors shadow-sm active:scale-95"><i class="fa-solid fa-print"></i></button>
                                 ${deleteButtonHtml}
                             </td>
                         </tr>
@@ -1861,20 +1933,19 @@ if (inv.customer.phone || inv.customer.locationLink) {
             window.openInvoiceDetailModal(invoiceNo);
         };
 
-        /* --- إجراء حذف الفاتورة للأدمن فقط --- */
         window.deleteInvoiceFromReport = async function(id) {
             if(currentUser.role !== 'ADMIN') {
-                alert('عفواً، هذا الإجراء مخصص للمدير المسؤول (الأدمن) فقط لا غير!');
+                alert('إجراء محظور! للمدير العام فقط.');
                 return;
             }
-            if(confirm('تحذير صارم: هل أنت متأكد من حذف هذه الفاتورة نهائياً وبشكل قطعي من قاعدة البيانات والتقارير؟')) {
+            if(confirm('تحذير نهائي: هل تؤكد إزالة الفاتورة المالية من قاعدة البيانات بالكامل؟ لا يمكن التراجع.')) {
                 await remove(ref(db, `invoices/${id}`));
-                alert('تم حذف الفاتورة بنجاح.');
+                alert('تم شطب الفاتورة بنجاح.');
                 loadReportsData();
             }
         };
 
-        /* --- مودال عرض تفاصيل الفاتورة بشكل جميل ومنظم --- */
+        /* --- مودال التفاصيل المالية --- */
         window.openInvoiceDetailModal = function(id) {
             const inv = reportDataCache.find(x => x.invoiceNo === id) || suspendedInvoicesData[id];
             if(!inv) return;
@@ -1886,63 +1957,70 @@ if (inv.customer.phone || inv.customer.locationLink) {
             const targetBranchName = allBranches[inv.targetBranch] ? allBranches[inv.targetBranch].name : inv.targetBranch;
 
             let itemsRows = inv.items.map(i => `
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="p-3 font-mono font-bold">${i.code}</td>
-                    <td class="p-3 font-semibold">${i.name}</td>
-                    <td class="p-3 text-gray-500">${parseFloat(i.originalPrice).toFixed(2)}</td>
-                    <td class="p-3 text-blue-600 font-bold">${parseFloat(i.salePrice).toFixed(2)}</td>
-                    <td class="p-3 text-center font-bold">${i.qty}</td>
-                    <td class="p-3 font-bold text-gray-900">${parseFloat(i.total).toFixed(2)}</td>
-                    <td class="p-3 font-bold text-red-500">${parseFloat(i.diff).toFixed(2)}</td>
+                <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td class="p-3 font-mono font-bold text-slate-600">${i.code}</td>
+                    <td class="p-3 font-bold text-slate-800">${i.name}</td>
+                    <td class="p-3 text-slate-500 font-semibold">${parseFloat(i.originalPrice).toFixed(2)}</td>
+                    <td class="p-3 text-indigo-600 font-black">${parseFloat(i.salePrice).toFixed(2)}</td>
+                    <td class="p-3 text-center font-black bg-slate-50 border-x border-slate-100">${i.qty}</td>
+                    <td class="p-3 font-black text-slate-900">${parseFloat(i.total).toFixed(2)}</td>
+                    <td class="p-3 font-black text-red-500">${parseFloat(i.diff).toFixed(2)}</td>
                 </tr>
             `).join('');
 
             content.innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl border">
-                    <div><b>رقم الفاتورة (يدوي):</b> <span class="text-blue-600 font-bold">${inv.manualInvoiceNo}</span></div>
-                    <div><b>نوع الفاتورة / الأوردر:</b> <span class="font-semibold">${inv.invoiceType} / ${inv.orderType}</span></div>
-                    <div><b>طريقة وطبيعة التحصيل:</b> <span class="font-bold text-emerald-600">${inv.paymentMethod || 'نقدي'}</span></div>
-                    <div><b>الفرع المسؤول:</b> <span class="font-semibold text-gray-700">${targetBranchName}</span></div>
-                    <div><b>منشئ الفاتورة (كول سنتر):</b> <span class="font-bold text-indigo-600">${inv.createdBy || '-'}</span></div>
-                    <div><b>مغلق ومستلم الفاتورة:</b> <span class="font-bold text-purple-600">${inv.closedBy || '-'}</span></div>
-                    <div class="md:col-span-3 flex justify-between bg-white p-3 rounded-lg border shadow-sm mt-2">
-                        <div><b>تاريخ ووقت الإنشاء:</b> <span class="text-xs text-indigo-600 font-black ml-2" dir="ltr">${inv.dateString || '-'}</span></div>
-                        <div><b>تاريخ ووقت الإغلاق:</b> <span class="text-xs text-purple-600 font-black ml-2" dir="ltr">${inv.closedDateString || 'غير مسجل'}</span></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5 bg-slate-50/50 p-5 rounded-2xl border border-slate-200">
+                    <div><b class="text-slate-500 text-xs block mb-1">الرقم المرجعي</b> <span class="text-indigo-700 font-black text-lg">${inv.manualInvoiceNo}</span></div>
+                    <div><b class="text-slate-500 text-xs block mb-1">التصنيف الشامل</b> <span class="font-bold text-slate-800">${inv.invoiceType} / ${inv.orderType}</span></div>
+                    <div><b class="text-slate-500 text-xs block mb-1">طريقة الدفع</b> <span class="font-black text-emerald-600 px-2 py-1 bg-emerald-50 rounded">${inv.paymentMethod || 'نقدي'}</span></div>
+                    <div><b class="text-slate-500 text-xs block mb-1">نقطة التنفيذ</b> <span class="font-bold text-slate-700">${targetBranchName}</span></div>
+                    <div><b class="text-slate-500 text-xs block mb-1">مسؤول الاستلام</b> <span class="font-bold text-indigo-600"><i class="fa-solid fa-headset mr-1 text-[10px]"></i> ${inv.createdBy || '-'}</span></div>
+                    <div><b class="text-slate-500 text-xs block mb-1">مسؤول التحصيل</b> <span class="font-bold text-slate-900"><i class="fa-solid fa-cash-register mr-1 text-[10px]"></i> ${inv.closedBy || '-'}</span></div>
+                    
+                    <div class="md:col-span-3 flex flex-col sm:flex-row justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm mt-2 gap-4">
+                        <div class="flex items-center gap-2 text-sm"><i class="fa-regular fa-clock text-indigo-400 text-lg"></i> <b class="text-slate-600">فتح:</b> <span class="font-black tracking-wider text-slate-900" dir="ltr">${inv.dateString || '-'}</span></div>
+                        <div class="flex items-center gap-2 text-sm"><i class="fa-solid fa-lock text-emerald-500 text-lg"></i> <b class="text-slate-600">إغلاق:</b> <span class="font-black tracking-wider text-slate-900" dir="ltr">${inv.closedDateString || 'غير مؤرشف مالياً'}</span></div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl border p-4 space-y-2">
-                    <h4 class="font-bold text-gray-900 border-b pb-1 mb-2 text-blue-700"><i class="fa-solid fa-user"></i> بيانات العميل المستهدف</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                        <div><b>اسم العميل الكامل:</b> ${inv.customer.name}</div>
-                        <div><b>رقم الهاتف والتواصل:</b> ${inv.customer.phone}</div>
-                        <div><b>عنوان التوصيل بالتفصيل:</b> ${inv.customer.address}</div>
-                        <div><b>ملاحظات التجهيز والتسليم:</b> <span class="text-amber-700 font-semibold">${inv.customer.notes}</span></div>
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-3 shadow-sm">
+                    <h4 class="font-black text-slate-900 border-b border-slate-100 pb-2 mb-3 text-lg flex items-center gap-2"><i class="fa-solid fa-address-card text-indigo-500"></i> البطاقة التعريفية للعميل</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div><b class="text-slate-500 block text-xs">الاسم</b> <span class="font-bold text-slate-800">${inv.customer.name}</span></div>
+                        <div><b class="text-slate-500 block text-xs">التواصل</b> <span class="font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">${inv.customer.phone}</span></div>
+                        <div class="md:col-span-2"><b class="text-slate-500 block text-xs">التوجيه المكاني</b> <span class="font-bold text-slate-700 leading-relaxed">${inv.customer.address}</span></div>
+                        <div class="md:col-span-2 bg-amber-50 p-3 rounded-lg border border-amber-100"><b class="text-amber-800 block text-xs mb-1">تعليمات خاصة بالتشغيل</b> <span class="text-amber-900 font-bold">${inv.customer.notes}</span></div>
                     </div>
                 </div>
 
-                <div class="border rounded-xl overflow-hidden bg-white">
-                    <table class="w-full text-right border-collapse text-xs">
-                        <thead class="bg-gray-100 font-bold border-b text-gray-700">
+                <div class="border border-slate-200 rounded-2xl overflow-hidden bg-white shadow-sm">
+                    <table class="w-full text-right border-collapse text-sm">
+                        <thead class="bg-slate-50 font-black border-b border-slate-200 text-slate-600 text-xs uppercase">
                             <tr>
-                                <th class="p-3">الكود</th>
-                                <th class="p-3">اسم الصنف المعني</th>
-                                <th class="p-3">السعر الأساسي</th>
-                                <th class="p-3">السعر البيعي</th>
-                                <th class="p-3 text-center">الكمية</th>
-                                <th class="p-3">الإجمالي الحالي</th>
-                                <th class="p-3">فرق السعر الكلي</th>
+                                <th class="p-4">الكود</th>
+                                <th class="p-4">البيان</th>
+                                <th class="p-4">س.أساسي</th>
+                                <th class="p-4">س.بيع</th>
+                                <th class="p-4 text-center border-x border-slate-100">كمية</th>
+                                <th class="p-4">مجموع</th>
+                                <th class="p-4">فرق</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-100">
                             ${itemsRows}
                         </tbody>
                     </table>
                 </div>
 
-                <div class="flex justify-between items-center bg-blue-50 p-4 rounded-xl border border-blue-100 text-base font-bold">
-                    <span class="text-blue-900">إجمالي قطع الأوردر الكلية: <span class="font-black">${inv.totalPieces} قطع</span></span>
-                    <span class="text-blue-900">الحساب الكلي للفاتورة: <span class="text-xl font-black text-blue-700">${parseFloat(inv.totalAmount).toFixed(2)} ج.م</span></span>
+                <div class="flex flex-col sm:flex-row justify-between items-center bg-indigo-900 p-6 rounded-2xl border border-indigo-800 text-white shadow-lg">
+                    <div class="mb-4 sm:mb-0 text-center sm:text-right">
+                        <span class="block text-indigo-300 text-xs font-bold uppercase mb-1">الحجم التشغيلي</span>
+                        <span class="text-xl font-black">${inv.totalPieces} عناصر / تحصيلات</span>
+                    </div>
+                    <div class="text-center sm:text-left">
+                        <span class="block text-indigo-300 text-xs font-bold uppercase mb-1">الإجمالي الختامي للعملية</span>
+                        <span class="text-3xl font-black text-white tracking-tight">${parseFloat(inv.totalAmount).toFixed(2)} EGP</span>
+                    </div>
                 </div>
             `;
         };
@@ -1955,7 +2033,7 @@ if (inv.customer.phone || inv.customer.locationLink) {
             input.addEventListener('input', renderFilteredReports);
         });
 
-        // مراقبة ملفات الإكسيل المرفوعة وتحديث الأصناف فورياً
+        // قراءة الـ Excel
         document.getElementById('excel-file')?.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -1981,57 +2059,57 @@ if (inv.customer.phone || inv.customer.locationLink) {
                 }
                 const statusEl = document.getElementById('excel-status');
                 if(statusEl) {
-                    statusEl.innerText = `تم استيراد وتحديث عدد ${successCount} صنف بنجاح تام!`;
+                    statusEl.querySelector('span').innerText = `ممتاز! تم اعتماد وإدراج ${successCount} سجل برمجي بنجاح.`;
                     statusEl.classList.remove('hidden');
                 }
             };
             reader.readAsArrayBuffer(file);
         });
 
+        // رسالة التأكيد
         function showCustomPrompt(message, isPassword = true) {
-    return new Promise((resolve) => {
-        const modal = document.getElementById('custom-prompt-modal');
-        const msgEl = document.getElementById('custom-prompt-message');
-        const inputEl = document.getElementById('custom-prompt-input');
-        const confirmBtn = document.getElementById('custom-prompt-confirm');
-        const cancelBtn = document.getElementById('custom-prompt-cancel');
+            return new Promise((resolve) => {
+                const modal = document.getElementById('custom-prompt-modal');
+                const msgEl = document.getElementById('custom-prompt-message');
+                const inputEl = document.getElementById('custom-prompt-input');
+                const confirmBtn = document.getElementById('custom-prompt-confirm');
+                const cancelBtn = document.getElementById('custom-prompt-cancel');
 
-        msgEl.textContent = message;
-        inputEl.value = '';
-        inputEl.type = isPassword ? 'password' : 'text';
-        inputEl.placeholder = isPassword ? '••••' : 'اكتب هنا...';
-        
-        modal.classList.remove('hidden');
-        setTimeout(() => inputEl.focus(), 100);
+                msgEl.textContent = message;
+                inputEl.value = '';
+                inputEl.type = isPassword ? 'password' : 'text';
+                inputEl.placeholder = isPassword ? '••••' : 'اكتب هنا...';
+                
+                modal.classList.remove('hidden');
+                setTimeout(() => inputEl.focus(), 100);
 
-        function handleConfirm() {
-            cleanup();
-            resolve(inputEl.value);
+                function handleConfirm() {
+                    cleanup();
+                    resolve(inputEl.value);
+                }
+
+                function handleCancel() {
+                    cleanup();
+                    resolve(null);
+                }
+
+                function handleKeyDown(e) {
+                    if (e.key === 'Enter') handleConfirm();
+                    if (e.key === 'Escape') handleCancel();
+                }
+
+                function cleanup() {
+                    modal.classList.add('hidden');
+                    confirmBtn.removeEventListener('click', handleConfirm);
+                    cancelBtn.removeEventListener('click', handleCancel);
+                    inputEl.removeEventListener('keydown', handleKeyDown);
+                }
+
+                confirmBtn.onclick = handleConfirm;
+                cancelBtn.onclick = handleCancel;
+                inputEl.onkeydown = handleKeyDown;
+            });
         }
-
-        function handleCancel() {
-            cleanup();
-            resolve(null);
-        }
-
-        function handleKeyDown(e) {
-            if (e.key === 'Enter') handleConfirm();
-            if (e.key === 'Escape') handleCancel();
-        }
-
-        function cleanup() {
-            modal.classList.add('hidden');
-            confirmBtn.removeEventListener('click', handleConfirm);
-            cancelBtn.removeEventListener('click', handleCancel);
-            inputEl.removeEventListener('keydown', handleKeyDown);
-        }
-
-        confirmBtn.onclick = handleConfirm;
-        cancelBtn.onclick = handleCancel;
-        inputEl.onkeydown = handleKeyDown;
-    });
-}
-            }
     </script>
 </body>
 </html>
