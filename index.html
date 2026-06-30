@@ -1352,7 +1352,7 @@
 
         /* --- نظام تعليق الفاتورة والتحقق من كود الموظف (الزر + F10) --- */
         window.processInvoiceWithVerification = async function() {
-            const manualNo = document.getElementById('inv-manual-no').value.trim();
+           const manualNo = document.getElementById('inv-manual-no').value.trim();
             if (!manualNo) {
                 alert('عفواً، يجب إدخال رقم الفاتورة اليدوي أولاً!');
                 return;
@@ -1362,7 +1362,28 @@
                 return;
             }
 
-           // نافذة طلب كود الموظف للتحقق قبل عملية التعليق باستخدام النافذة المخصصة
+            // --- التعديل الذكي: التحقق من عدم تكرار رقم الفاتورة في قاعدة البيانات ---
+            try {
+                const snap = await get(ref(db, 'invoices'));
+                if (snap.exists()) {
+                    const invoicesList = snap.val();
+                    for (let invId in invoicesList) {
+                        // التحقق: إذا كان الرقم موجوداً، ولسنا في وضع "تعديل" لنفس الفاتورة
+                        if (invoicesList[invId].manualInvoiceNo === manualNo && invId !== editingInvoiceId) {
+                            alert(`عفواً! رقم الفاتورة ( ${manualNo} ) مسجل مسبقاً لعميل آخر. يرجى إدخال رقم مختلف!`);
+                            const manualInput = document.getElementById('inv-manual-no');
+                            manualInput.focus();
+                            manualInput.select();
+                            return; // إيقاف الحفظ فوراً
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("خطأ في فحص الفواتير:", error);
+            }
+            // ----------------------------------------------------------------------
+
+            // نافذة طلب كود الموظف للتحقق قبل عملية التعليق باستخدام النافذة المخصصة
             const empCodeInput = await showCustomPrompt('برجاء إدخال كود الموظف لإتمام عملية حفظ وتعليق الفاتورة:', false);
             if(empCodeInput === null) return; // إلغاء العملية
             if(!empCodeInput.trim()) {
@@ -1726,8 +1747,16 @@
             `;
 
             const qrContainer = document.getElementById('receipt-qrcode');
-            if (inv.customer.locationLink) {
-                new QRCode(qrContainer, { text: inv.customer.locationLink, width: 50, height: 50 });
+            
+            // تجهيز الرابط لصفحة الدليفري مع تمرير البيانات (يجب أن ترفع صفحة delivery.html على نفس موقعك)
+            // استبدل "https://yoursite.com" برابط موقعك الفعلي الذي سترفع عليه النظام
+            const deliveryPageUrl = window.location.origin + "/delivery.html"; 
+            
+            const qrUrl = `${deliveryPageUrl}?inv=${encodeURIComponent(inv.manualInvoiceNo)}&name=${encodeURIComponent(inv.customer.name)}&phone=${encodeURIComponent(inv.customer.phone)}&address=${encodeURIComponent(inv.customer.address)}&loc=${encodeURIComponent(inv.customer.locationLink)}`;
+
+            // توليد الـ QR بالرابط الجديد (تعمل حتى لو لم يضع خريطة، لكي تظهر باقي البيانات للدليفري)
+            if (inv.customer.phone || inv.customer.locationLink) {
+                new QRCode(qrContainer, { text: qrUrl, width: 60, height: 60 });
             }
 
             setTimeout(() => {
