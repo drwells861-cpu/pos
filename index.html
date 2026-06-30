@@ -41,25 +41,23 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #f8fafc; /* خلفية ناعمة جداً */
+            background-color: #f8fafc;
         }
-        /* تحسين السكرول بار ليناسب الأنظمة الحديثة */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
+        /* الكود السحري للطباعة لجميع الطابعات الحرارية */
         @media print {
+            @page {
+                margin: 0; /* إلغاء هوامش الورقة من المتصفح */
+            }
+            body {
+                margin: 0;
+                padding: 0;
+                background-color: white;
+            }
             body * {
                 visibility: hidden;
             }
@@ -70,16 +68,17 @@
                 position: absolute;
                 left: 0;
                 top: 0;
-                width: 80mm;
-                padding: 2mm;
+                width: 100%; /* يتمدد حسب حجم الطابعة 58 أو 80 */
+                max-width: 100%;
+                padding: 2mm; /* تقليل الهوامش الداخلية جداً */
                 background: white;
                 color: black;
-                font-size: 12px;
             }
             .no-print {
                 display: none !important;
             }
         }
+
         .filter-input {
             width: 100%;
             padding: 6px 10px;
@@ -94,11 +93,6 @@
             border-color: #6366f1;
             outline: none;
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>
@@ -224,7 +218,7 @@
                     <i class="fa-solid fa-sliders"></i> الإعدادات
                 </button>
                 <button onclick="switchTab('suspended-tab')" id="btn-suspended-tab" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 active:scale-95 whitespace-nowrap relative">
-                    <i class="fa-solid fa-clock-rotate-left"></i> فواتير معلقة
+                    <i class="fa-solid fa-clock-rotate-left"></i> المراقبة والتشغيل
                     <span id="suspended-count" class="hidden absolute -top-1.5 -left-1.5 bg-red-500 text-white rounded-full min-w-[22px] h-[22px] px-1 text-[11px] flex items-center justify-center font-black shadow-sm ring-2 ring-white animate-bounce">0</span>
                 </button>
                 <button onclick="switchTab('reports-tab')" id="btn-reports-tab" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 active:scale-95 whitespace-nowrap">
@@ -673,7 +667,7 @@
                 <div class="bg-white rounded-2xl shadow-soft border border-slate-200 p-5 flex justify-between items-center flex-wrap gap-4 relative overflow-hidden">
                     <div class="absolute right-0 top-0 w-2 h-full bg-indigo-500"></div>
                     <div class="pl-4 pr-6">
-                        <h3 class="font-black text-slate-900 text-xl flex items-center gap-2"><i class="fa-solid fa-satellite-dish text-indigo-500 animate-pulse"></i> الفواتير معلقة للفرع والمتابعة </h3>
+                        <h3 class="font-black text-slate-900 text-xl flex items-center gap-2"><i class="fa-solid fa-satellite-dish text-indigo-500 animate-pulse"></i> رادار التشغيل والمراقبة اللحظية</h3>
                         <p class="text-sm font-semibold text-slate-500 mt-1">تحديث حي ومباشر لجميع حالات الأوردرات بين الفروع وخدمة العملاء.</p>
                     </div>
                     <div class="relative w-full md:w-80">
@@ -1516,7 +1510,7 @@
             await set(ref(db, `invoices/${invoiceId}`), invoiceData);
             
             if(editingInvoiceId) {
-                alert('تم حفظ التعديلات وتحديث شاشة الفواتير معلقةبنجاح.');
+                alert('تم حفظ التعديلات وتحديث شاشة المراقبة بنجاح.');
                 cancelEditFlow(); 
             } else {
                 alert(`تم الإرسال والتعليق بنجاح بواسطة: ${employeeName}`);
@@ -1754,7 +1748,7 @@
             }
         };
 
-        /* --- محرك الطباعة --- */
+        /* --- محرك الطباعة الحرارية المطور (مضغوط ومرن) --- */
         window.printThermalReceipt = async function(id) {
             const snap = await get(ref(db, `invoices/${id}`));
             if (!snap.exists()) return;
@@ -1764,50 +1758,59 @@
             receiptContainer.classList.remove('hidden');
 
             let itemsRowsHtml = inv.items.map(i => `
-                <div style="border: 1px solid #000; border-radius: 4px; margin-bottom: 4px; display: flex; font-size: 11px; overflow: hidden;">
-                    <div style="flex: 1; padding: 4px; border-left: 1px solid #000; font-weight: bold; display: flex; align-items: center; text-align:right;">
-                        ${i.name}
-                    </div>
-                    <div style="width: 75px; padding: 4px; text-align: center; background-color: #f9f9f9; display: flex; flex-direction: column; justify-content: center;">
-                        <span style="font-size: 10px;">${i.qty} × ${parseFloat(i.salePrice).toFixed(2)}</span>
-                        <span style="font-weight: 900; margin-top: 2px;">${parseFloat(i.total).toFixed(2)}</span>
-                    </div>
-                </div>
+                <tr style="border-bottom: 1px dashed #000;">
+                    <td style="padding: 2px 0; font-weight: bold; font-size: 11px;">${i.name}</td>
+                    <td style="padding: 2px 0; text-align: center; font-size: 11px;">${i.qty}</td>
+                    <td style="padding: 2px 0; text-align: center; font-size: 11px;">${parseFloat(i.salePrice).toFixed(2)}</td>
+                    <td style="padding: 2px 0; text-align: left; font-weight: bold; font-size: 11px;">${parseFloat(i.total).toFixed(2)}</td>
+                </tr>
             `).join('');
 
+            // هيكل مضغوط جداً يتناسب مع أي طابعة حرارية 58 أو 80 ملم
             receiptContainer.innerHTML = `
-                <div style="text-align: center; font-family: 'Cairo', sans-serif; line-height: 1.4; direction: rtl;">
-                    <h2 style="margin: 0; font-size: 15px; font-weight: 900; letter-spacing: 1px;">منظومة الدعم والبيع الذكية</h2>
-                    <p style="margin: 2px 0; font-size: 11px; color:#333; font-weight:bold;">إيصال تسليم مبيعات</p>
-                    <div style="border-top: 2px double black; margin: 6px 0;"></div>
+                <div style="width: 100%; max-width: 100%; margin: 0 auto; direction: rtl; font-family: 'Cairo', sans-serif; color: #000; line-height: 1.2;">
                     
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; text-align: right;">
-                        <div style="font-size: 11px; flex: 1;">
-                            <div><b>رقم الفاتورة:</b> ${inv.manualInvoiceNo}</div>
-                            <div><b>نوع الأوردر:</b> ${inv.orderType}</div>
-                            <div><b>نوع الفاتورة:</b> ${inv.invoiceType}</div>
-                            <div><b>التحصيل:</b> ${inv.paymentMethod || 'نقدي'}</div>
-                            <div style="font-size: 10px; color:#444; margin-top: 2px;"><b>التاريخ:</b> ${inv.dateString}</div>
+                    <div style="text-align: center; margin-bottom: 5px;">
+                        <h2 style="margin: 0; font-size: 14px; font-weight: 900;">منظومة الدعم والبيع الذكية</h2>
+                        <p style="margin: 2px 0; font-size: 10px; font-weight: bold;">إيصال مبيعات</p>
+                    </div>
+                    
+                    <div style="border-top: 1px dashed black; border-bottom: 1px dashed black; padding: 4px 0; margin-bottom: 4px; font-size: 10px; display: flex; justify-content: space-between;">
+                        <div>
+                            <div style="margin-bottom: 2px;"><b>رقم:</b> ${inv.manualInvoiceNo}</div>
+                            <div style="margin-bottom: 2px;"><b>نوع:</b> ${inv.orderType} | ${inv.paymentMethod || 'نقدي'}</div>
+                            <div><b>تاريخ:</b> ${inv.dateString.split(',')[0]}</div>
                         </div>
-                        <div id="receipt-qrcode" style="margin-right: 8px;"></div>
+                        <div id="receipt-qrcode" style="width: 50px; height: 50px;"></div>
                     </div>
+
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid #000; font-size: 10px;">
+                                <th style="text-align: right; padding: 2px 0;">الصنف</th>
+                                <th style="text-align: center; padding: 2px 0;">كمية</th>
+                                <th style="text-align: center; padding: 2px 0;">سعر</th>
+                                <th style="text-align: left; padding: 2px 0;">إجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsRowsHtml}
+                        </tbody>
+                    </table>
                     
-                    <div style="font-weight: bold; text-align: right; font-size: 11px; margin-bottom: 4px; border-bottom: 1px solid #000; padding-bottom:2px;">البيان التفصيلي:</div>
-                    ${itemsRowsHtml}
-                    
-                    <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 900; margin-top: 8px; border-top: 1px solid black; padding-top: 4px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 900; border-top: 1px solid black; padding-top: 4px; margin-bottom: 4px;">
                         <span>الإجمالي الصافي:</span>
-                        <span>${parseFloat(inv.totalAmount).toFixed(2)} ج.م</span>
+                        <span>${parseFloat(inv.totalAmount).toFixed(2)} ج</span>
                     </div>
                     
-                    <div style="border-top: 1px dashed black; margin: 8px 0;"></div>
-                    <div style="text-align: right; font-size: 10px; line-height:1.5;">
-                        <div><b>اسم العميل:</b> ${inv.customer.name}</div>
-                        <div><b>التوصيل:</b> ${inv.customer.address}</div>
-                        <div><b>الموبايل:</b> ${inv.customer.phone}</div>
-                        ${inv.customer.notes !== '-' ? `<div><b>ملاحظات:</b> ${inv.customer.notes}</div>` : ''}
+                    <div style="border-top: 1px dashed black; padding-top: 4px; font-size: 10px; line-height: 1.4;">
+                        <div style="display: flex; justify-content: space-between;"><b>العميل:</b> <span>${inv.customer.name}</span></div>
+                        <div style="display: flex; justify-content: space-between;"><b>تواصل:</b> <span>${inv.customer.phone}</span></div>
+                        <div style="margin-top: 2px;"><b>توصيل:</b> ${inv.customer.address}</div>
+                        ${inv.customer.notes !== '-' ? `<div style="margin-top: 2px; color: #444;"><b>ملاحظات:</b> ${inv.customer.notes}</div>` : ''}
                     </div>
-                    <div style="margin-top: 12px; font-size: 10px; color: #444; font-weight:bold; text-align:center;">شكراً لثقتكم الغالية بنا</div>
+                    
+                    <div style="text-align: center; font-size: 10px; font-weight: bold; margin-top: 8px;">شكراً لثقتكم الغالية بنا</div>
                 </div>
             `;
 
@@ -1815,7 +1818,6 @@
             qrContainer.innerHTML = ""; 
 
             const deliveryPageUrl = "https://drwells861-cpu.github.io/pos/delivery.html";
-            // معالجة القيم الفارغة لتجنب كتابة "undefined" داخل الكيو آر
             const cName = inv.customer.name || '';
             const cPhone = inv.customer.phone || '';
             const cAddress = inv.customer.address || '';
@@ -1826,14 +1828,14 @@
             if (cPhone || cLocation) {
                 new QRCode(qrContainer, {
                     text: qrUrl,
-                    width: 140,      
-                    height: 140,
+                    width: 50,  // تصغير الحجم لتوفير المساحة
+                    height: 50,
                     colorDark: "#000000",
                     colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.M // مستوى M أفضل للروابط الطويلة ليقرأه الهاتف بسهولة
+                    correctLevel: QRCode.CorrectLevel.M 
                 });
             }
-            // طباعة مباشرة
+            
             setTimeout(() => {
                 window.print();
                 receiptContainer.classList.add('hidden');
@@ -2015,7 +2017,7 @@
                 <div class="flex flex-col sm:flex-row justify-between items-center bg-indigo-900 p-6 rounded-2xl border border-indigo-800 text-white shadow-lg">
                     <div class="mb-4 sm:mb-0 text-center sm:text-right">
                         <span class="block text-indigo-300 text-xs font-bold uppercase mb-1">الحجم التشغيلي</span>
-                        <span class="text-xl font-black">${inv.totalPieces} عناصر / تحصيلات</span>
+                        <span class="text-xl font-black">${inv.totalPieces} عناصر / مقبوضات</span>
                     </div>
                     <div class="text-center sm:text-left">
                         <span class="block text-indigo-300 text-xs font-bold uppercase mb-1">الإجمالي الختامي للعملية</span>
