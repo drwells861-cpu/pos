@@ -1750,7 +1750,7 @@
             
             // تجهيز الرابط لصفحة الدليفري مع تمرير البيانات (يجب أن ترفع صفحة delivery.html على نفس موقعك)
             // استبدل "https://yoursite.com" برابط موقعك الفعلي الذي سترفع عليه النظام
-            const deliveryPageUrl = window.location.origin + "/delivery.html"; 
+            const deliveryPageUrl = window.location.origin + "https://drwells861-cpu.github.io/pos/delivery.html"; 
             
             const qrUrl = `${deliveryPageUrl}?inv=${encodeURIComponent(inv.manualInvoiceNo)}&name=${encodeURIComponent(inv.customer.name)}&phone=${encodeURIComponent(inv.customer.phone)}&address=${encodeURIComponent(inv.customer.address)}&loc=${encodeURIComponent(inv.customer.locationLink)}`;
 
