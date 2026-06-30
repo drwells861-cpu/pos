@@ -66,13 +66,13 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
+// استقبل الاختصارات الجديدة
+const name = urlParams.get('n') || 'عميل';
+const phone = urlParams.get('p') || '';
+const address = urlParams.get('a') || 'لا يوجد عنوان';
+const loc = urlParams.get('l') || '';
+const invNo = urlParams.get('inv') || '';
             
-            const name = urlParams.get('name') || 'عميل بدون اسم';
-            const phone = urlParams.get('phone') || '';
-            const address = urlParams.get('address') || 'لم يتم تسجيل عنوان نصي.';
-            const loc = urlParams.get('loc') || '';
-            const invNo = urlParams.get('inv') || '';
-
             document.getElementById('client-name').innerText = name;
             if(invNo) document.getElementById('invoice-no').innerText = `طلب رقم: ${invNo}`;
             document.getElementById('client-phone').innerText = phone || 'لا يوجد رقم';
