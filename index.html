@@ -1036,6 +1036,31 @@
         </div>
     </div>
 
+    <div id="custom-alert-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-[9999] hidden transition-opacity">
+        <div class="bg-white rounded-[2rem] shadow-2xl p-8 w-[400px] max-w-[90%] mx-auto text-center border border-slate-100 transform scale-100 transition-transform" dir="rtl">
+            <div class="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border-4 border-white shadow-sm -mt-14 relative z-10">
+                <i class="fa-solid fa-bell"></i>
+            </div>
+            <h3 class="text-xl font-black text-slate-900 mb-2">تنبيه</h3>
+            <p id="custom-alert-message" class="text-sm text-slate-600 mb-6 font-bold leading-relaxed"></p>
+            <button id="custom-alert-ok" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold text-sm transition-all shadow-lg shadow-indigo-500/30 active:scale-95">حسناً</button>
+        </div>
+    </div>
+
+    <div id="custom-confirm-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center z-[9999] hidden transition-opacity">
+        <div class="bg-white rounded-[2rem] shadow-2xl p-8 w-[400px] max-w-[90%] mx-auto text-center border border-slate-100 transform scale-100 transition-transform" dir="rtl">
+            <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 border-4 border-white shadow-sm -mt-14 relative z-10">
+                <i class="fa-solid fa-circle-question"></i>
+            </div>
+            <h3 class="text-xl font-black text-slate-900 mb-2">تأكيد الإجراء</h3>
+            <p id="custom-confirm-message" class="text-sm text-slate-600 mb-6 font-bold leading-relaxed"></p>
+            <div class="flex gap-3">
+                <button id="custom-confirm-cancel" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-sm transition-colors active:scale-95">إلغاء</button>
+                <button id="custom-confirm-ok" class="flex-[2] bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl font-bold text-sm transition-all shadow-lg shadow-amber-500/30 active:scale-95">تأكيد</button>
+            </div>
+        </div>
+    </div>
+
     <div id="thermal-receipt" class="hidden"></div>
 
     <script type="module">
@@ -1067,7 +1092,18 @@
         window.currentItemsPage = 1;
         const itemsPerPage = 20;
 
+        // --- Security & Global Keydown ---
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
         document.addEventListener('keydown', function(e) {
+            // Disable F12, Ctrl+Shift+I, Ctrl+U
+            if (e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || 
+                (e.ctrlKey && e.key === 'U')) {
+                e.preventDefault();
+            }
             if (e.key === 'Escape') {
                 window.closeSearchModal();
                 window.closeCustomerSearchModal();
@@ -1089,6 +1125,46 @@
                 }
             }
         });
+
+        // --- Custom Modals Logic ---
+        window.showCustomAlert = function(message) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('custom-alert-modal');
+                document.getElementById('custom-alert-message').textContent = message;
+                modal.classList.remove('hidden');
+                
+                const okBtn = document.getElementById('custom-alert-ok');
+                const handleOk = () => {
+                    modal.classList.add('hidden');
+                    okBtn.removeEventListener('click', handleOk);
+                    resolve();
+                };
+                okBtn.addEventListener('click', handleOk);
+            });
+        };
+
+        window.showCustomConfirm = function(message) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('custom-confirm-modal');
+                document.getElementById('custom-confirm-message').textContent = message;
+                modal.classList.remove('hidden');
+                
+                const okBtn = document.getElementById('custom-confirm-ok');
+                const cancelBtn = document.getElementById('custom-confirm-cancel');
+                
+                const handleOk = () => { cleanup(); resolve(true); };
+                const handleCancel = () => { cleanup(); resolve(false); };
+                
+                function cleanup() {
+                    modal.classList.add('hidden');
+                    okBtn.removeEventListener('click', handleOk);
+                    cancelBtn.removeEventListener('click', handleCancel);
+                }
+                
+                okBtn.addEventListener('click', handleOk);
+                cancelBtn.addEventListener('click', handleCancel);
+            });
+        };
 
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1138,10 +1214,10 @@
                     }
                 }
                 
-                alert('خطأ في كود المستخدم أو كلمة المرور، يرجى المحاولة مرة أخرى.');
+                await showCustomAlert('خطأ في كود المستخدم أو كلمة المرور، يرجى المحاولة مرة أخرى.');
             } catch (error) {
                 console.error(error);
-                alert('حدث خطأ أثناء الاتصال بقاعدة البيانات.');
+                await showCustomAlert('حدث خطأ أثناء الاتصال بقاعدة البيانات.');
             }
         });
 
@@ -1183,7 +1259,6 @@
                 window.switchTab('invoice-tab');
             } 
             else {
-                // Admin role
                 allTabs.forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.classList.remove('hidden');
@@ -1233,7 +1308,6 @@
             });
         };
 
-        /* --- Dashboard Stats --- */
         window.calculateAdminStats = async function() {
             let totalSales = 0;
             let totalDiff = 0;
@@ -1259,7 +1333,6 @@
             document.getElementById('dash-total-customers').innerText = Object.keys(allCustomers).length;
         };
 
-        /* --- إعدادات الأنواع والتحصيل --- */
         function observeSettings() {
             onValue(ref(db, 'settings/orderTypes'), (snap) => {
                 orderTypes = snap.val() || {}; renderSettingsTables(); populateDropdowns();
@@ -1319,7 +1392,7 @@
         };
 
         window.deleteSetting = async function(type, code) {
-            if(confirm('تأكيد مسح هذا الإعداد؟')) {
+            if(await showCustomConfirm('تأكيد مسح هذا الإعداد؟')) {
                 if (type === 'order') await remove(ref(db, `settings/orderTypes/${code}`));
                 else if (type === 'invoice') await remove(ref(db, `settings/invoiceTypes/${code}`));
                 else await remove(ref(db, `settings/paymentTypes/${code}`));
@@ -1361,9 +1434,6 @@
             });
         }
 
-        /* --- Customers Logic --- */
-
-        // Dynamic inputs for phones
         window.addPhoneInput = function(val = '') {
             const container = document.getElementById('phones-container');
             const div = document.createElement('div');
@@ -1375,7 +1445,6 @@
             container.appendChild(div);
         };
 
-        // Dynamic inputs for addresses
         window.addAddressInput = function(val = '') {
             const container = document.getElementById('addresses-container');
             const div = document.createElement('div');
@@ -1479,7 +1548,7 @@
         };
 
         window.deleteCustomer = async function(code) {
-            if(confirm('هل أنت متأكد من مسح العميل نهائياً؟')) {
+            if(await showCustomConfirm('هل أنت متأكد من مسح العميل نهائياً؟')) {
                 await remove(ref(db, `customers/${code}`));
             }
         };
@@ -1573,7 +1642,6 @@
             }
         };
 
-        /* --- Customer Selection logic in Invoice --- */
         window.openCustomerSearchModal = function() {
             document.getElementById('customer-search-modal').classList.remove('hidden');
             setTimeout(() => document.getElementById('modal-customer-search-input').focus(), 100);
@@ -1660,7 +1728,6 @@
             if (c.payType) document.getElementById('pay-type-select').value = c.payType;
         }
 
-        /* --- Employees logic --- */
         function observeEmployees() {
             onValue(ref(db, 'employees'), (snapshot) => {
                 allEmployees = snapshot.val() || {};
@@ -1748,13 +1815,12 @@
         }
 
         window.deleteEmployee = async function(code) {
-            if(confirm('هل أنت متأكد من إزالة هذا الموظف نهائياً من سجلات النظام؟')) {
+            if(await showCustomConfirm('هل أنت متأكد من إزالة هذا الموظف نهائياً من سجلات النظام؟')) {
                 await remove(ref(db, `employees/${code}`));
                 await remove(ref(db, `admins/${code}`)); 
             }
         };
 
-        /* --- Items logic --- */
         function observeItems() {
             onValue(ref(db, 'items'), (snapshot) => {
                 allItems = snapshot.val() || {};
@@ -1796,7 +1862,7 @@
         };
 
         window.deleteItem = async function(code) {
-            if(confirm('هل أنت متأكد من مسح الصنف نهائياً؟')) {
+            if(await showCustomConfirm('هل أنت متأكد من مسح الصنف نهائياً؟')) {
                 await remove(ref(db, `items/${code}`));
             }
         }
@@ -1848,7 +1914,6 @@
         window.nextItemPage = function() { window.currentItemsPage++; window.renderItemsTable(); };
         window.prevItemPage = function() { if (window.currentItemsPage > 1) { window.currentItemsPage--; window.renderItemsTable(); } };
 
-        /* --- Branches Logic --- */
         function observeBranches() {
             onValue(ref(db, 'branches'), (snapshot) => {
                 allBranches = snapshot.val() || {};
@@ -1863,13 +1928,12 @@
                 selectEmpBranch.innerHTML = '';
                 if(selectCustBranch) selectCustBranch.innerHTML = '<option value="">غير محدد</option>';
 
-                // Report Select Logic specific to Branch / Admin
                 selectReport.innerHTML = '';
                 if (currentUser && currentUser.role !== 'BRANCH') {
                     selectReport.innerHTML = '<option value="ALL">جميع الفروع والخدمات</option>';
                     selectReport.disabled = false;
                 } else if (currentUser) {
-                    selectReport.disabled = true; // Lock dropdown if it's a branch
+                    selectReport.disabled = true;
                 }
 
                 for (let code in allBranches) {
@@ -1927,7 +1991,7 @@
         };
 
         window.deleteBranch = async function(code) {
-            if(confirm('تأكيد مسح الفرع نهائياً من الهيكل؟')) {
+            if(await showCustomConfirm('تأكيد مسح الفرع نهائياً من الهيكل؟')) {
                 await remove(ref(db, `branches/${code}`));
             }
         };
@@ -1937,7 +2001,6 @@
             document.getElementById('branch-form').reset();
         };
 
-        /* --- Items Modal --- */
         window.modalSelectedItemsCode = new Set();
         window.searchModalMode = 'invoice'; 
 
@@ -1954,15 +2017,15 @@
             document.getElementById('search-modal').classList.add('hidden'); 
         };
         
-        window.handleModalCheckboxChange = function(checkbox, code) {
+        window.handleModalCheckboxChange = async function(checkbox, code) {
             if (checkbox.checked) {
                 if (window.searchModalMode === 'report' && window.modalSelectedItemsCode.size >= 1) {
-                    alert('في وضع البحث الخاص بالتقارير، يمكنك اختيار صنف واحد فقط!');
+                    await showCustomAlert('في وضع البحث الخاص بالتقارير، يمكنك اختيار صنف واحد فقط!');
                     checkbox.checked = false;
                     return;
                 }
                 if (window.modalSelectedItemsCode.size >= 15) {
-                    alert('عفواً، الحد الأقصى هو 15 صنف في المرة الواحدة لحماية الأداء!');
+                    await showCustomAlert('عفواً، الحد الأقصى هو 15 صنف في المرة الواحدة لحماية الأداء!');
                     checkbox.checked = false;
                     return;
                 }
@@ -1999,9 +2062,9 @@
             }
         };
 
-        window.toggleAllModalCheckboxes = function() {
+        window.toggleAllModalCheckboxes = async function() {
             if (window.searchModalMode === 'report') {
-                alert('لا يمكن تحديد الكل في وضع البحث الخاص بالتقارير.');
+                await showCustomAlert('لا يمكن تحديد الكل في وضع البحث الخاص بالتقارير.');
                 document.getElementById('select-all-modal').checked = false;
                 return;
             }
@@ -2014,9 +2077,9 @@
             });
         };
 
-        window.addSelectedItemsFromModal = function() {
+        window.addSelectedItemsFromModal = async function() {
             if (window.modalSelectedItemsCode.size === 0) {
-                alert('الرجاء تحديد صنف واحد على الأقل!');
+                await showCustomAlert('الرجاء تحديد صنف واحد على الأقل!');
                 return;
             }
 
@@ -2031,12 +2094,13 @@
                 return;
             }
 
-            window.modalSelectedItemsCode.forEach(code => {
+            for (let code of window.modalSelectedItemsCode) {
                 const item = allItems[code];
                 if(item) {
                     const exists = currentInvoiceItemsArray.some(x => x.code === code);
                     if(exists) {
-                        if(!confirm(`الصنف [${item.name}] مضاف بالفعل، هل تريد تكراره؟`)) return;
+                        const confirmed = await showCustomConfirm(`الصنف [${item.name}] مضاف بالفعل، هل تريد تكراره؟`);
+                        if(!confirmed) continue;
                     }
                     currentInvoiceItemsArray.push({ 
                         code: item.code, 
@@ -2049,14 +2113,13 @@
                         diff: 0 
                     });
                 }
-            });
+            }
             
             renderCurrentInvoiceTable();
             closeSearchModal();
         };
 
-        /* --- Invoice logic --- */
-        window.handleItemInputKey = function(e) {
+        window.handleItemInputKey = async function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 const code = document.getElementById('inv-item-code').value.trim();
@@ -2079,7 +2142,7 @@
                     const unitSelectInput = document.getElementById('inv-item-unit-select');
                     unitSelectInput.focus();
                 } else {
-                    alert('عفواً، الصنف غير مسجل في قاعدة البيانات!');
+                    await showCustomAlert('عفواً، الصنف غير مسجل في قاعدة البيانات!');
                     document.getElementById('inv-item-code').value = "";
                 }
             }
@@ -2119,7 +2182,7 @@
             }
         };
 
-        window.addItemToInvoiceList = function() {
+        window.addItemToInvoiceList = async function() {
             const code = document.getElementById('inv-item-code').value.trim();
             const name = document.getElementById('inv-item-name').value;
             const salePrice = parseFloat(document.getElementById('inv-item-price').value);
@@ -2132,7 +2195,7 @@
             
             const isDuplicate = currentInvoiceItemsArray.some(item => item.code === code && item.unitName === unitName);
             if (isDuplicate) {
-                const confirmAdd = confirm('تحذير: هذا الصنف بنفس الوحدة موجود بالفعل! هل تود الإضافة مجدداً؟');
+                const confirmAdd = await showCustomConfirm('تحذير: هذا الصنف بنفس الوحدة موجود بالفعل! هل تود الإضافة مجدداً؟');
                 if (!confirmAdd) {
                     clearItemInputBar();
                     return;
@@ -2251,12 +2314,12 @@
         window.processInvoiceWithVerification = async function() {
            const manualNo = document.getElementById('inv-manual-no').value.trim();
             if (!manualNo) {
-                alert('يجب إدخال رقم الفاتورة المرجعي أولاً!');
+                await showCustomAlert('يجب إدخال رقم الفاتورة المرجعي أولاً!');
                 document.getElementById('inv-manual-no').focus();
                 return;
             }
             if (currentInvoiceItemsArray.length === 0) {
-                alert('القائمة فارغة! يرجى إضافة أصناف للطلب.');
+                await showCustomAlert('القائمة فارغة! يرجى إضافة أصناف للطلب.');
                 return;
             }
 
@@ -2266,7 +2329,7 @@
                     const invoicesList = snap.val();
                     for (let invId in invoicesList) {
                         if (invoicesList[invId].manualInvoiceNo === manualNo && invId !== editingInvoiceId) {
-                            alert(`عذراً! الرقم المرجعي ( ${manualNo} ) مستخدم مسبقاً. يرجى التغيير.`);
+                            await showCustomAlert(`عذراً! الرقم المرجعي ( ${manualNo} ) مستخدم مسبقاً. يرجى التغيير.`);
                             const manualInput = document.getElementById('inv-manual-no');
                             manualInput.focus();
                             manualInput.select();
@@ -2281,7 +2344,7 @@
             const empCodeInput = await showCustomPrompt('أدخل كود المرور الخاص بك لاعتماد الطلب وإرساله للفرع:', false);
             if(empCodeInput === null) return; 
             if(!empCodeInput.trim()) {
-                alert('كود التفويض إلزامي لإتمام العملية!');
+                await showCustomAlert('كود التفويض إلزامي لإتمام العملية!');
                 return;
             }
 
@@ -2295,7 +2358,7 @@
                 if (adminSnap.exists()) {
                     employeeName = adminSnap.val().name;
                 } else {
-                    alert('الرقم السري غير صالح، لا توجد صلاحيات!');
+                    await showCustomAlert('الرقم السري غير صالح، لا توجد صلاحيات!');
                     return;
                 }
             }
@@ -2310,7 +2373,7 @@
             const payType = document.getElementById('pay-type-select').value;
 
             if (!invType || !ordType || !payType) {
-                alert('يرجى استكمال بيانات التوجيه كاملة (الفئة، النوع، التحصيل).');
+                await showCustomAlert('يرجى استكمال بيانات التوجيه كاملة (الفئة، النوع، التحصيل).');
                 return;
             }
 
@@ -2345,10 +2408,10 @@
             await set(ref(db, `invoices/${invoiceId}`), invoiceData);
             
             if(editingInvoiceId) {
-                alert('تم حفظ التعديلات وتحديث شاشة المراقبة بنجاح.');
+                await showCustomAlert('تم حفظ التعديلات وتحديث شاشة المراقبة بنجاح.');
                 cancelEditFlow(); 
             } else {
-                alert(`تم الإرسال والتعليق بنجاح بواسطة: ${employeeName}`);
+                await showCustomAlert(`تم الإرسال والتعليق بنجاح بواسطة: ${employeeName}`);
                 resetInvoiceFields();
             }
         };
@@ -2410,13 +2473,13 @@
             if (actionType === 'PREPARE') {
                 nextStatus = 'PREPARING';
                 msg = 'تأكيد استلام الأوردر بفرع التنفيذ؟ (سيتم قفل التعديل وبدء التجهيز)';
-                if(confirm(msg)) {
+                if(await showCustomConfirm(msg)) {
                     await update(ref(db, `invoices/${id}`), { status: nextStatus });
                 }
             } 
             else if (actionType === 'UNDO') {
                 if (currentStatus === 'PREPARING') {
-                    if(confirm('هل العميل طلب إضافة تعديلات وتريد إرجاع الطلب لخدمة العملاء (بانتظار التأكيد)؟')) {
+                    if(await showCustomConfirm('هل العميل طلب إضافة تعديلات وتريد إرجاع الطلب لخدمة العملاء (بانتظار التأكيد)؟')) {
                         await update(ref(db, `invoices/${id}`), { status: 'SUSPENDED' });
                     }
                 }
@@ -2424,7 +2487,7 @@
             else if (actionType === 'DELIVER') {
                 nextStatus = 'OUT_FOR_DELIVERY';
                 msg = 'هل أنت متأكد من خروج الأوردر للتوصيل؟ (سيغلق الإجراءات نهائياً)';
-                if(confirm(msg)) {
+                if(await showCustomConfirm(msg)) {
                     await update(ref(db, `invoices/${id}`), { status: nextStatus });
                 }
             } 
@@ -2432,7 +2495,7 @@
                 const closerCode = await showCustomPrompt('أدخل كودك السري لتأكيد استلام النقدية وإغلاق الفاتورة بالأرشيف:', false);
                 if(closerCode === null) return;
                 if(!closerCode.trim()) {
-                    alert('الكود مطلوب لعملية الإغلاق المالي!');
+                    await showCustomAlert('الكود مطلوب لعملية الإغلاق المالي!');
                     return;
                 }
 
@@ -2444,7 +2507,7 @@
                     const adminSnap = await get(ref(db, `admins/${closerCode.trim()}`));
                     if(adminSnap.exists()) closerName = adminSnap.val().name;
                     else {
-                        alert('الكود المدخل غير مسجل، فشل الإغلاق!');
+                        await showCustomAlert('الكود المدخل غير مسجل، فشل الإغلاق!');
                         return;
                     }
                 }
@@ -2454,7 +2517,7 @@
                     closedBy: closerName, 
                     closedDateString: new Date().toLocaleString('ar-EG') 
                 });
-                alert(`تم الإغلاق والأرشفة المالية بنجاح بواسطة: ${closerName}`);
+                await showCustomAlert(`تم الإغلاق والأرشفة المالية بنجاح بواسطة: ${closerName}`);
             }
         };
 
@@ -2529,10 +2592,11 @@
                 if (currentUser.role === 'CUSTOMER_SERVICE' || currentUser.role === 'ADMIN') {
                     if(!inv.editLocked && inv.status === 'SUSPENDED') {
                         buttonsHtml += `<button onclick="editInvoice('${inv.invoiceNo}')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-2.5 rounded-xl transition-all shadow-md shadow-blue-500/20 active:scale-95"><i class="fa-solid fa-pen-to-square"></i> تعديل</button>`;
+                        buttonsHtml += `<button onclick="cancelInvoice('${inv.invoiceNo}')" class="bg-white border-2 border-red-200 hover:border-red-500 text-red-600 text-xs font-bold py-2.5 rounded-xl transition-all active:scale-95"><i class="fa-solid fa-trash-can"></i> إزالة</button>`;
                     } else {
-                        buttonsHtml += `<button disabled class="bg-slate-100 text-slate-400 text-xs font-bold py-2.5 rounded-xl border border-slate-200 cursor-not-allowed shadow-inner"><i class="fa-solid fa-ban"></i> قيد التنفيذ</button>`;
+                        buttonsHtml += `<button disabled class="bg-slate-100 text-slate-400 text-xs font-bold py-2.5 rounded-xl border border-slate-200 cursor-not-allowed shadow-inner"><i class="fa-solid fa-ban"></i> تعديل (قيد التنفيذ)</button>`;
+                        buttonsHtml += `<button disabled class="bg-slate-100 text-slate-400 text-xs font-bold py-2.5 rounded-xl border border-slate-200 cursor-not-allowed shadow-inner"><i class="fa-solid fa-ban"></i> إزالة (قيد التنفيذ)</button>`;
                     }
-                    buttonsHtml += `<button onclick="cancelInvoice('${inv.invoiceNo}')" class="bg-white border-2 border-red-200 hover:border-red-500 text-red-600 text-xs font-bold py-2.5 rounded-xl transition-all active:scale-95"><i class="fa-solid fa-trash-can"></i> إزالة</button>`;
                 }
                 
                 buttonsHtml += `<button onclick="printThermalReceipt('${inv.invoiceNo}')" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold py-2.5 rounded-xl transition-all col-span-full mt-2 active:scale-95 border border-slate-200"><i class="fa-solid fa-print"></i> طباعة ريسيت التجهيز</button>`;
@@ -2585,12 +2649,11 @@
         };
 
         window.cancelInvoice = async function(id) {
-            if(confirm('تأكيد: إزالة الطلب بالكامل من دائرة التشغيل اللحظي؟')) {
+            if(await showCustomConfirm('تأكيد: إزالة الطلب بالكامل من دائرة التشغيل اللحظي؟')) {
                 await remove(ref(db, `invoices/${id}`));
             }
         };
 
-        /* --- Thermal Receipt --- */
         window.printThermalReceipt = async function(id) {
             const snap = await get(ref(db, `invoices/${id}`));
             if (!snap.exists()) return;
@@ -2671,7 +2734,12 @@
 
             if (cPhone || cLocation) {
                 new QRCode(qrContainer, {
-                    text: qrUrl, width: 120, height: 120, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.L
+                    text: qrUrl, 
+                    width: 160, 
+                    height: 160, 
+                    colorDark: "#000000", 
+                    colorLight: "#ffffff", 
+                    correctLevel: QRCode.CorrectLevel.M
                 });
             }
             
@@ -2681,7 +2749,6 @@
             }, 300);
         };
 
-        /* --- Reports Logic --- */
         window.loadReportsData = async function() {
             const snap = await get(ref(db, 'invoices'));
             if(!snap.exists()) return;
@@ -2812,12 +2879,12 @@
 
         window.deleteInvoiceFromReport = async function(id) {
             if(currentUser.role !== 'ADMIN') {
-                alert('إجراء محظور! للمدير العام فقط.');
+                await showCustomAlert('إجراء محظور! للمدير العام فقط.');
                 return;
             }
-            if(confirm('تحذير نهائي: هل تؤكد إزالة الفاتورة المالية من قاعدة البيانات بالكامل؟ لا يمكن التراجع.')) {
+            if(await showCustomConfirm('تحذير نهائي: هل تؤكد إزالة الفاتورة المالية من قاعدة البيانات بالكامل؟ لا يمكن التراجع.')) {
                 await remove(ref(db, `invoices/${id}`));
-                alert('تم شطب الفاتورة بنجاح.');
+                await showCustomAlert('تم شطب الفاتورة بنجاح.');
                 loadReportsData();
                 calculateAdminStats();
             }
