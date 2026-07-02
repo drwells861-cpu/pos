@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> POS | Management System</title>
+    <title>POS - PRO+ | Management System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -84,7 +84,7 @@
                 <div class="inline-flex p-4 bg-slate-50 text-slate-900 rounded-2xl mb-4 shadow-inner border border-slate-100">
                     <i class="fa-solid fa-prescription-bottle-medical text-3xl"></i>
                 </div>
-                <h2 class="text-3xl font-black text-slate-900 tracking-tight"> POS-PRO <span class="text-gold-500">POS</span> </h2>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight"> POS - <span class="text-gold-500">PRO+</span> </h2>
                 <p class="text-sm text-slate-500 mt-2 font-semibold">منظومة الإدارة الذكية المتكاملة</p>
             </div>
             <form id="login-form" class="space-y-6">
@@ -138,6 +138,23 @@
                 <button onclick="addSelectedItemsFromModal()" class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/30 flex items-center gap-2 active:scale-95">
                     <i class="fa-solid fa-check-double"></i> إضافة الأصناف المحددة
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="customer-detail-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden no-print transition-opacity">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 m-4 flex flex-col max-h-[90vh] border border-slate-100">
+            <div class="flex justify-between items-center mb-5 border-b border-slate-100 pb-4">
+                <h3 class="text-xl font-black text-slate-900 flex items-center gap-3">
+                    <div class="p-2 bg-blue-50 rounded-lg text-blue-600"><i class="fa-solid fa-address-card"></i></div>
+                    البطاقة الشاملة لبيانات العميل
+                </h3>
+                <button onclick="closeCustomerDetailModal()" class="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-all"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto custom-scrollbar pr-2" id="customer-detail-content">
+                </div>
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-4">
+                <button onclick="closeCustomerDetailModal()" class="px-6 py-2.5 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition-colors active:scale-95">إغلاق</button>
             </div>
         </div>
     </div>
@@ -212,7 +229,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
                 <div class="flex items-center space-x-4 space-x-reverse">
                     <span class="text-2xl font-black text-white flex items-center gap-2 tracking-tight">
-                        <i class="fa-solid fa-prescription-bottle-medical text-gold-500"></i> POS-PRO <span class="text-gold-400 font-bold text-xl">POS</span>
+                        <i class="fa-solid fa-prescription-bottle-medical text-gold-500"></i> POS - <span class="text-gold-400 font-bold text-xl">PRO+</span>
                     </span>
                     <span id="user-badge" class="bg-slate-800 text-gold-400 border border-slate-700 px-3 py-1 rounded-full text-xs font-bold shadow-sm"></span>
                 </div>
@@ -232,7 +249,7 @@
                 <button onclick="switchTab('invoice-tab')" id="btn-invoice-tab" class="tab-btn px-5 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 bg-indigo-600 text-white shadow-md shadow-indigo-500/20 active:scale-95 whitespace-nowrap">
                     <i class="fa-solid fa-cart-shopping"></i> المبيعات
                 </button>
-                <button onclick="switchTab('customers-tab')" id="btn-customers-tab" class="tab-btn px-5 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 active:scale-95 whitespace-nowrap">
+                <button onclick="switchTab('customers-tab')" id="btn-customers-tab" class="tab-btn px-5 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 active:scale-95 whitespace-nowrap hidden">
                     <i class="fa-solid fa-users"></i> العملاء
                 </button>
                 <button onclick="switchTab('items-tab')" id="btn-items-tab" class="tab-btn px-5 py-2 rounded-xl font-bold text-sm transition-all flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-indigo-600 active:scale-95 whitespace-nowrap">
@@ -351,14 +368,31 @@
                                     <label class="block text-xs font-bold text-slate-700 mb-1.5">اسم العميل *</label>
                                     <input type="text" id="cust-db-name" required class="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white">
                                 </div>
+                                
                                 <div class="col-span-2">
-                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">أرقام الهواتف (افصل بينها بفاصلة ,)</label>
-                                    <textarea id="cust-db-phones" rows="2" placeholder="010..., 011..." class="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white font-mono" dir="ltr"></textarea>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex justify-between items-center">
+                                        <span>أرقام الهواتف *</span>
+                                        <button type="button" onclick="addPhoneInput()" class="text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 rounded text-xs flex items-center gap-1 shadow-sm"><i class="fa-solid fa-plus"></i> إضافة رقم</button>
+                                    </label>
+                                    <div id="phones-container" class="space-y-2">
+                                        <div class="flex gap-2">
+                                            <input type="text" class="cust-phone-input w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white font-mono" dir="ltr" placeholder="010..." required>
+                                        </div>
+                                    </div>
                                 </div>
+
                                 <div class="col-span-2">
-                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">عناوين التوصيل (افصل بينها بفاصلة ,)</label>
-                                    <textarea id="cust-db-addresses" rows="2" placeholder="العنوان الأول, العنوان الثاني..." class="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white"></textarea>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex justify-between items-center">
+                                        <span>عناوين التوصيل *</span>
+                                        <button type="button" onclick="addAddressInput()" class="text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 rounded text-xs flex items-center gap-1 shadow-sm"><i class="fa-solid fa-plus"></i> إضافة عنوان</button>
+                                    </label>
+                                    <div id="addresses-container" class="space-y-2">
+                                        <div class="flex gap-2">
+                                            <input type="text" class="cust-address-input w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white" placeholder="العنوان بالتفصيل..." required>
+                                        </div>
+                                    </div>
                                 </div>
+
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 mb-1.5">المنطقة</label>
                                     <input type="text" id="cust-db-region" class="w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white">
@@ -921,8 +955,7 @@
                         <div id="report-branch-filter-container" class="md:col-span-2">
                             <label class="block text-xs font-bold text-slate-700 mb-2">فلترة حسب نقطة البيع / الفرع</label>
                             <select id="report-branch-select" class="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 font-bold text-slate-800 cursor-pointer shadow-sm">
-                                <option value="ALL">جميع الفروع ونقاط الخدمة المتاحة</option>
-                            </select>
+                                </select>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-2">من تاريخ</label>
@@ -1039,6 +1072,7 @@
                 window.closeSearchModal();
                 window.closeCustomerSearchModal();
                 window.closeInvoiceDetailModal();
+                window.closeCustomerDetailModal();
                 document.getElementById('customer-select-options-modal').classList.add('hidden');
                 document.getElementById('custom-prompt-modal').classList.add('hidden');
             }
@@ -1141,16 +1175,15 @@
             if (currentUser.role === 'BRANCH') {
                 document.getElementById('btn-suspended-tab').classList.remove('hidden');
                 document.getElementById('btn-reports-tab').classList.remove('hidden');
-                document.getElementById('btn-customers-tab').classList.remove('hidden');
                 window.switchTab('suspended-tab');
             } 
             else if (currentUser.role === 'CUSTOMER_SERVICE') {
                 document.getElementById('btn-invoice-tab').classList.remove('hidden');
                 document.getElementById('btn-suspended-tab').classList.remove('hidden');
-                document.getElementById('btn-customers-tab').classList.remove('hidden');
                 window.switchTab('invoice-tab');
             } 
             else {
+                // Admin role
                 allTabs.forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.classList.remove('hidden');
@@ -1329,6 +1362,31 @@
         }
 
         /* --- Customers Logic --- */
+
+        // Dynamic inputs for phones
+        window.addPhoneInput = function(val = '') {
+            const container = document.getElementById('phones-container');
+            const div = document.createElement('div');
+            div.className = 'flex gap-2 mt-2';
+            div.innerHTML = `
+                <input type="text" class="cust-phone-input w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white font-mono" dir="ltr" value="${val}" placeholder="010..." required>
+                <button type="button" onclick="this.parentElement.remove()" class="bg-red-50 text-red-500 hover:bg-red-100 px-3 rounded-xl transition-colors shadow-sm"><i class="fa-solid fa-trash"></i></button>
+            `;
+            container.appendChild(div);
+        };
+
+        // Dynamic inputs for addresses
+        window.addAddressInput = function(val = '') {
+            const container = document.getElementById('addresses-container');
+            const div = document.createElement('div');
+            div.className = 'flex gap-2 mt-2';
+            div.innerHTML = `
+                <input type="text" class="cust-address-input w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white" value="${val}" placeholder="العنوان بالتفصيل..." required>
+                <button type="button" onclick="this.parentElement.remove()" class="bg-red-50 text-red-500 hover:bg-red-100 px-3 rounded-xl transition-colors shadow-sm"><i class="fa-solid fa-trash"></i></button>
+            `;
+            container.appendChild(div);
+        };
+
         function observeCustomers() {
             onValue(ref(db, 'customers'), (snapshot) => {
                 allCustomers = snapshot.val() || {};
@@ -1344,11 +1402,14 @@
             let code = document.getElementById('cust-db-code').value.trim();
             if(!code) code = 'CUST-' + Date.now();
 
+            const phones = Array.from(document.querySelectorAll('.cust-phone-input')).map(i => i.value.trim()).filter(v => v).join(',');
+            const addresses = Array.from(document.querySelectorAll('.cust-address-input')).map(i => i.value.trim()).filter(v => v).join(',');
+
             const cData = {
                 code,
                 name: document.getElementById('cust-db-name').value.trim(),
-                phone: document.getElementById('cust-db-phones').value.trim(),
-                address: document.getElementById('cust-db-addresses').value.trim(),
+                phone: phones,
+                address: addresses,
                 region: document.getElementById('cust-db-region').value.trim(),
                 branch: document.getElementById('cust-db-branch').value,
                 invType: document.getElementById('cust-db-inv-type').value,
@@ -1365,6 +1426,18 @@
         window.resetCustomerForm = function() {
             document.getElementById('customer-form').reset();
             document.getElementById('cust-db-code').removeAttribute('readonly');
+            
+            document.getElementById('phones-container').innerHTML = `
+                <div class="flex gap-2">
+                    <input type="text" class="cust-phone-input w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white font-mono" dir="ltr" placeholder="010..." required>
+                </div>
+            `;
+            
+            document.getElementById('addresses-container').innerHTML = `
+                <div class="flex gap-2">
+                    <input type="text" class="cust-address-input w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white" placeholder="العنوان بالتفصيل..." required>
+                </div>
+            `;
         };
 
         window.editCustomer = function(code) {
@@ -1373,8 +1446,6 @@
                 document.getElementById('cust-db-code').value = c.code;
                 document.getElementById('cust-db-code').setAttribute('readonly', 'true');
                 document.getElementById('cust-db-name').value = c.name;
-                document.getElementById('cust-db-phones').value = c.phone;
-                document.getElementById('cust-db-addresses').value = c.address;
                 document.getElementById('cust-db-region').value = c.region || '';
                 document.getElementById('cust-db-branch').value = c.branch || '';
                 document.getElementById('cust-db-inv-type').value = c.invType || '';
@@ -1382,6 +1453,28 @@
                 document.getElementById('cust-db-pay-type').value = c.payType || '';
                 document.getElementById('cust-db-location').value = c.location || '';
                 document.getElementById('cust-db-notes').value = c.notes || '';
+
+                const pContainer = document.getElementById('phones-container');
+                pContainer.innerHTML = '';
+                const pArr = c.phone.split(',');
+                pArr.forEach((p, index) => {
+                    if(index === 0) {
+                        pContainer.innerHTML += `<div class="flex gap-2"><input type="text" class="cust-phone-input w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white font-mono" dir="ltr" value="${p.trim()}" required></div>`;
+                    } else {
+                        addPhoneInput(p.trim());
+                    }
+                });
+                
+                const aContainer = document.getElementById('addresses-container');
+                aContainer.innerHTML = '';
+                const aArr = c.address.split(',');
+                aArr.forEach((a, index) => {
+                    if(index === 0) {
+                        aContainer.innerHTML += `<div class="flex gap-2"><input type="text" class="cust-address-input w-full px-4 py-2 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 focus:bg-white" value="${a.trim()}" required></div>`;
+                    } else {
+                        addAddressInput(a.trim());
+                    }
+                });
             }
         };
 
@@ -1389,6 +1482,67 @@
             if(confirm('هل أنت متأكد من مسح العميل نهائياً؟')) {
                 await remove(ref(db, `customers/${code}`));
             }
+        };
+        
+        window.viewCustomer = function(code) {
+            const c = allCustomers[code];
+            if (!c) return;
+
+            const modal = document.getElementById('customer-detail-modal');
+            const content = document.getElementById('customer-detail-content');
+            
+            const bName = allBranches[c.branch] ? allBranches[c.branch].name : (c.branch || 'غير محدد');
+
+            const phonesHtml = c.phone.split(',').map(p => `<span class="bg-indigo-50 text-indigo-700 font-mono font-bold px-2 py-1 rounded border border-indigo-100">${p.trim()}</span>`).join(' ');
+            const addressesHtml = c.address.split(',').map(a => `<li class="bg-slate-50 p-2 rounded-lg border border-slate-100 mb-2">${a.trim()}</li>`).join('');
+
+            content.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <b class="text-slate-500 text-xs block mb-1">كود العميل</b>
+                        <span class="font-mono font-black text-slate-800">${c.code}</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <b class="text-slate-500 text-xs block mb-1">الاسم بالكامل</b>
+                        <span class="font-black text-slate-900">${c.name}</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm col-span-1 md:col-span-2">
+                        <b class="text-slate-500 text-xs block mb-2">أرقام الهواتف</b>
+                        <div class="flex flex-wrap gap-2">${phonesHtml}</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm col-span-1 md:col-span-2">
+                        <b class="text-slate-500 text-xs block mb-2">عناوين التوصيل المسجلة</b>
+                        <ul class="list-none m-0 p-0 font-bold text-slate-700">${addressesHtml}</ul>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <b class="text-slate-500 text-xs block mb-1">المنطقة</b>
+                        <span class="font-bold text-slate-700">${c.region || 'غير مسجل'}</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <b class="text-slate-500 text-xs block mb-1">الفرع الافتراضي</b>
+                        <span class="font-bold text-slate-700">${bName}</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <b class="text-slate-500 text-xs block mb-1">إعدادات البيع الافتراضية</b>
+                        <span class="block font-semibold text-slate-600 text-xs mt-1">الفئة: <span class="font-bold text-slate-800">${c.invType || '-'}</span></span>
+                        <span class="block font-semibold text-slate-600 text-xs mt-1">الأوردر: <span class="font-bold text-slate-800">${c.ordType || '-'}</span></span>
+                        <span class="block font-semibold text-slate-600 text-xs mt-1">الدفع: <span class="font-bold text-slate-800">${c.payType || '-'}</span></span>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <b class="text-slate-500 text-xs block mb-1">رابط الموقع (Location)</b>
+                        ${c.location ? `<a href="${c.location}" target="_blank" class="text-blue-600 hover:underline font-mono text-xs break-all">${c.location}</a>` : '<span class="text-slate-400 font-bold">لا يوجد رابط</span>'}
+                    </div>
+                    <div class="bg-amber-50 p-4 rounded-xl border border-amber-100 shadow-sm col-span-1 md:col-span-2">
+                        <b class="text-amber-800 text-xs block mb-1">ملاحظات دائمة</b>
+                        <span class="font-bold text-amber-900">${c.notes || 'لا توجد ملاحظات.'}</span>
+                    </div>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+        };
+
+        window.closeCustomerDetailModal = function() {
+            document.getElementById('customer-detail-modal').classList.add('hidden');
         };
 
         window.renderCustomersTable = function() {
@@ -1406,11 +1560,12 @@
                         <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
                             <td class="p-4 font-mono font-bold text-slate-700 text-xs">${c.code}</td>
                             <td class="p-4 font-bold text-slate-800">${c.name}</td>
-                            <td class="p-4 font-mono text-indigo-600 text-xs" dir="ltr">${c.phone}</td>
+                            <td class="p-4 font-mono text-indigo-600 text-xs" dir="ltr">${c.phone.split(',')[0]} ${c.phone.includes(',') ? '...' : ''}</td>
                             <td class="p-4 text-slate-600 font-semibold text-xs">${c.region || '-'}</td>
                             <td class="p-4 text-center flex gap-2 justify-center">
-                                <button onclick="editCustomer('${c.code}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 p-2 rounded-lg transition-colors"><i class="fa-solid fa-pen"></i></button>
-                                <button onclick="deleteCustomer('${c.code}')" class="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-lg transition-colors"><i class="fa-solid fa-trash-can"></i></button>
+                                <button onclick="viewCustomer('${c.code}')" class="text-indigo-500 hover:text-indigo-700 bg-indigo-50 p-2 rounded-lg transition-colors shadow-sm"><i class="fa-solid fa-eye"></i></button>
+                                <button onclick="editCustomer('${c.code}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 p-2 rounded-lg transition-colors shadow-sm"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteCustomer('${c.code}')" class="text-red-500 hover:text-red-700 bg-red-50 p-2 rounded-lg transition-colors shadow-sm"><i class="fa-solid fa-trash-can"></i></button>
                             </td>
                         </tr>
                     `;
@@ -1446,7 +1601,7 @@
                         <tr class="hover:bg-blue-50/30 transition-colors">
                             <td class="p-3 font-mono font-bold text-slate-600 text-xs">${c.code}</td>
                             <td class="p-3 font-bold text-slate-800">${c.name}</td>
-                            <td class="p-3 text-indigo-600 font-mono text-xs" dir="ltr">${c.phone}</td>
+                            <td class="p-3 text-indigo-600 font-mono text-xs" dir="ltr">${c.phone.split(',')[0]} ${c.phone.includes(',') ? '...' : ''}</td>
                             <td class="p-3 text-center">
                                 <button onclick="selectCustomerForInvoice('${c.code}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md active:scale-95">اختيار</button>
                             </td>
@@ -1465,7 +1620,6 @@
             let addressesArr = c.address.split(',').map(s => s.trim()).filter(s => s);
 
             if (phonesArr.length > 1 || addressesArr.length > 1) {
-                // Show options modal
                 const pSelect = document.getElementById('multi-phone-select');
                 const aSelect = document.getElementById('multi-address-select');
                 
@@ -1706,9 +1860,17 @@
                 const selectCustBranch = document.getElementById('cust-db-branch');
 
                 selectInvoice.innerHTML = '';
-                selectReport.innerHTML = '<option value="ALL">جميع الفروع والخدمات</option>';
                 selectEmpBranch.innerHTML = '';
                 if(selectCustBranch) selectCustBranch.innerHTML = '<option value="">غير محدد</option>';
+
+                // Report Select Logic specific to Branch / Admin
+                selectReport.innerHTML = '';
+                if (currentUser && currentUser.role !== 'BRANCH') {
+                    selectReport.innerHTML = '<option value="ALL">جميع الفروع والخدمات</option>';
+                    selectReport.disabled = false;
+                } else if (currentUser) {
+                    selectReport.disabled = true; // Lock dropdown if it's a branch
+                }
 
                 for (let code in allBranches) {
                     const b = allBranches[code];
@@ -1726,9 +1888,12 @@
                     if (b.type === 'BRANCH') {
                         const opt = `<option value="${b.code}">${b.name}</option>`;
                         selectInvoice.innerHTML += opt;
-                        selectReport.innerHTML += opt;
                         selectEmpBranch.innerHTML += opt;
                         if(selectCustBranch) selectCustBranch.innerHTML += opt;
+                        
+                        if (currentUser && (currentUser.role !== 'BRANCH' || currentUser.code === b.code)) {
+                            selectReport.innerHTML += opt;
+                        }
                     }
                 }
                 
@@ -2448,7 +2613,7 @@
                 <div style="width: 100%; max-width: 100%; margin: 0 auto; direction: rtl; font-family: 'Cairo', sans-serif; color: #000; line-height: 1.2; padding: 2mm;">
                     
                     <div style="text-align: center; margin-bottom: 8px; border-bottom: 1px dashed #000; padding-bottom: 8px;">
-                        <h2 style="margin: 0; font-size: 16px; font-weight: 900;">POS-PRO</h2>
+                        <h2 style="margin: 0; font-size: 16px; font-weight: 900;">POS - PRO+</h2>
                         <p style="margin: 2px 0; font-size: 11px; font-weight: bold;">إيصال مبيعات</p>
                     </div>
                     
@@ -2546,7 +2711,6 @@
             
             reportDataCache.sort((a, b) => b.timestamp - a.timestamp);
             
-            // طلبك: إظهار آخر 10 فواتير فقط في التقارير
             reportDataCache = reportDataCache.slice(0, 10);
             
             renderFilteredReports();
